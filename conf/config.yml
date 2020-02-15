@@ -1,0 +1,26 @@
+server:
+  port: 8001
+
+# 数据库
+database:
+  host: "127.0.0.1"
+  port: 5432
+  user: "postgres"
+  password: "root"
+  database: "vinki"
+
+directory:
+  # Markdown 根目录
+  root: "/Users/louisun/Nutstore Files/我的坚果云/Blog"
+
+  # 忽略的目录
+  exclude:
+    - Else
+    - "Effective Java"
+    - GraduateArtical
+    - UnCommon
+
+  # 折叠的目录
+  fold:
+    - Database
+    - DistributedSystem

@@ -1,0 +1,63 @@
+/* html {
+    scroll-behavior: smooth;
+} */
+
+.treeBar {
+    overflow-y: auto;
+    overflow-x: visible;
+    background-color: rgba(255, 255, 255, .9);
+}
+
+.treeBar ul {
+    padding-left: 0.8em;
+    margin: 0;
+}
+
+.treeBar>ul li {
+    list-style-type: none;
+}
+
+
+/* 整个无序列表 */
+
+.treeBar>ul {
+    padding: 10px 0px 10px 10px;
+}
+
+.treeBar>ul>li a {
+    line-height: 27px;
+    /*overflow: hidden; white-space: nowrap; text-overflow: ellipsis;*/
+    text-decoration: none;
+    font-size: 13px;
+    cursor: pointer;
+    color: rgb(36, 41, 46);
+}
+
+.treeBar>ul>li>ul>li>a {
+    line-height: 30px;
+    border-left: 4px solid #ff7e79;
+    padding-left: 8px;
+}
+
+.treeBar>ul>li>ul>li>ul>li>a {
+    border-left: 3px solid #56abe6;
+    padding-left: 8px;
+}
+
+.treeBar>ul>li>ul>li>ul>li>ul>li>a {
+    border-left: 2px solid #e4c56f;
+    padding-left: 8px;
+}
+
+.treeBar>ul>li a:hover {
+    text-decoration: underline;
+    color: #0371e9;
+}
+
+
+/* :target:before {
+    content: "";
+    display: block;
+    height: 50px;
+    margin: -50px 0 0;
+} */
