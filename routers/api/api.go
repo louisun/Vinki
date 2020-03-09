@@ -3,35 +3,41 @@ package api
 import (
 	"net/http"
 
-	"github.com/vinki/services"
+	"github.com/jinzhu/gorm"
+
+	"github.com/vinki/service"
 
 	"github.com/gin-gonic/gin"
-	"github.com/vinki/pkg/utils"
+	"github.com/vinki/utils"
 )
-
-// GET 测试页
-func GetTestPage(c *gin.Context) {
-	loadPage(c, "./conf/test.md", 1, "测试", []string{"1. 测试", "2. 测试", "3. 测试"})
-}
 
 // GET 主页
 func GetHomePage(c *gin.Context) {
-	loadPage(c, "./conf/home.md", 1, "Home", nil)
+	article, err := service.GetArticle("Home", "Vinki")
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.Redirect(http.StatusTemporaryRedirect, "/refresh")
+		} else {
+			c.JSON(http.StatusInternalServerError, err)
+		}
+		return
+	}
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(article.HtmlContent))
 }
 
 // GET 标签主页
 func GetTagPage(c *gin.Context) {
-	files, err := services.GetArticleListByTag(c.Param("tag"))
+	tag, err := service.GetTagHtml(c.Param("tag"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
 	}
-	loadPage(c, "./conf/tag.md", len(files), c.Param("tag"), files)
+	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(tag.HtmlContent))
 }
 
 // GET 文章页
 func GetWikiPage(c *gin.Context) {
-	article, err := services.GetArticle(c.Param("tag"), c.Param("title"))
+	article, err := service.GetArticle(c.Param("tag"), c.Param("title"))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
@@ -39,9 +45,9 @@ func GetWikiPage(c *gin.Context) {
 	c.Data(http.StatusOK, "text/html; charset=utf-8", []byte(article.HtmlContent))
 }
 
-// POST 刷新
+// GET 刷新
 func Refresh(c *gin.Context) {
-	err := services.Refresh()
+	err := service.Refresh()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, err)
 		return
@@ -51,7 +57,7 @@ func Refresh(c *gin.Context) {
 
 // 加载 Markdown -> 渲染 Html 返回
 func loadPage(c *gin.Context, mdPath string, number int, currentTag string, files []string) {
-	tags, err := services.GetAllTags()
+	tags, err := service.GetAllTags()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, "内部错误")
 		return

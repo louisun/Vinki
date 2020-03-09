@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/vinki/pkg/utils"
+	"github.com/vinki/utils"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"

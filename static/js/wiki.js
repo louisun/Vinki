@@ -13,9 +13,10 @@ $(document).ready(function() {
         }));
     }
     var setTitle = function() {
-        var title = $("#wiki-content").find("h1").text();
-        if (title != "") {
-            $("#toolbar-title").text(title);
+        var mdTitle = $("#wiki-content").find("h1").text();
+        document.title = mdTitle
+        if (mdTitle != "") {
+            $("#toolbar-title").text(mdTitle);
         } else {
             $("#toolbar-title").text("");
         };

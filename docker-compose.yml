@@ -1,0 +1,58 @@
+version: "2.1"
+
+services:
+  vinki-blog:
+    container_name: vinki-blog
+    image: renzo/vinki
+    build: .
+    ports:
+      - "8001:8080"
+    volumes:
+      - /Users/louisun/.vinki/blog:/vinki/conf
+      - /Users/louisun/Cloudz/笔记/Blog:/vinki/repository
+    restart: always
+    networks:
+      - vinki-network
+    depends_on:
+      vinki-postgres:
+        condition: service_healthy
+
+  vinki-gr:
+    container_name: vinki-gr
+    image: renzo/vinki
+    build: .
+    ports:
+      - "8002:8080"
+    volumes:
+      - /Users/louisun/.vinki/gr:/vinki/conf
+      - "/Users/louisun/Blog/GraduateArtical/Harmony GA:/vinki/repository"
+
+    restart: always
+    networks:
+      - vinki-network
+    depends_on:
+      vinki-postgres:
+        condition: service_healthy
+
+  vinki-postgres:
+    container_name: vinki-postgres
+    image: postgres:11-alpine
+    environment:
+      POSTGRES_PASSWORD: root
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
+    restart: always
+    networks:
+      - vinki-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+
+networks:
+  vinki-network:
+    driver: bridge

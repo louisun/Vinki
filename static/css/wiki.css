@@ -9,6 +9,16 @@ body {
     margin: 0;
 }
 
+*,
+ ::after,
+ ::before {
+    box-sizing: border-box;
+}
+
+body.mdui-locked {
+    overflow: auto;
+}
+
 .toolbar {
     height: 50px !important;
 }
@@ -32,11 +42,11 @@ body {
 }
 
 #directory-container {
+    padding-right: 5px;
     bottom: 0;
     right: 0;
     margin: 0;
     z-index: 5000;
-    padding-right: 5px;
     overflow-y: scroll;
 }
 
@@ -70,6 +80,7 @@ body {
 
 img {
     max-width: 100%;
+    vertical-align: middle;
 }
 
 .card-icon-element {
@@ -84,6 +95,10 @@ img {
     font-weight: bold;
     color: #3F51B5;
     padding-left: 20px;
+}
+
+#dialog-content {
+    padding: 10px;
 }
 
 

@@ -25,8 +25,6 @@ func LoadRoutes() *gin.Engine {
 
 		// 主页
 		r.GET("/", api.GetHomePage)
-		// 网页测试
-		r.GET("/test", api.GetTestPage)
 		// 刷新数据库
 		r.GET("/refresh", api.Refresh)
 	}
