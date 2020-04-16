@@ -1,45 +1,42 @@
 package routers
 
 import (
-	"net/http"
+	"github.com/vinki/routers/controllers"
 
 	"github.com/gin-gonic/gin"
-	"github.com/vinki/routers/api"
 )
 
-func LoadRoutes() *gin.Engine {
-	r := gin.New()
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
+func InitRouter() *gin.Engine {
+	r := gin.Default()
 
-	wg := r.Group("/")
+	// api 接口
+	v1 := r.Group("/api/v1")
+
 	{
-		// 静态资源
-		r.StaticFS("/static", http.Dir("./static"))
-		// 检测服务状态
-		r.GET("/ping", func(c *gin.Context) {
-			c.JSON(200, gin.H{
-				"message": "pong",
-			})
-		})
+		// ping
+		v1.GET("/site/ping", controllers.Ping)
+		// 刷新所有仓库
+		v1.POST("/site/refresh/all", controllers.RefreshAll)
+		// 刷新特定仓库
+		//v1.POST("/site/refresh/repo/:id", controllers.RefreshByRepo)
+		// 刷新特定标签
+		//v1.POST("/site/refresh/tag/:id", controllers.RefreshByTag)
 
-		// 主页
-		r.GET("/", api.GetHomePage)
-		// 刷新数据库
-		r.GET("/refresh", api.Refresh)
-	}
+		// 登录
+		//v1.POST("/user/login", controllers.Login)
+		// 注册
+		//v1.POST("/user/register", controllers.Register)
 
-	// 缓存-中间件
-	wg = r.Group("/wiki")
-	{
-		// 主页
-		wg.GET("/", api.GetHomePage)
+		// 获取所有仓库
+		v1.GET("/repos", controllers.GetRepos)
+		// 获取特定仓库下所有标签
+		v1.GET("/repos/:id/tags", controllers.GetRootTagInfos)
 
-		// Wiki 页
-		wg.GET("/tags/:tag/:title", api.GetWikiPage)
+		// 获取特定标签下文章基本信息列表
+		v1.GET("tags/:id/articles", controllers.GetTagView)
 
-		// Tag 主页
-		wg.GET("/tags/:tag", api.GetTagPage)
+		// 获取文章详情
+		v1.GET("articles/:id", controllers.GetArticle)
 	}
 
 	return r

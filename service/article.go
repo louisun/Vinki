@@ -1,38 +1,63 @@
 package service
 
 import (
-	"github.com/vinki/db"
+	"github.com/jinzhu/gorm"
+	"github.com/vinki/models"
+	"github.com/vinki/pkg/serializer"
 )
 
-// 获取文章
-func GetArticle(tag string, title string) (*db.Article, error) {
-	article, err := db.GetArticleByTagAndTitle(tag, title)
-	if err != nil {
-		log.Errorf("Get article by tag and title failed: %v, tag: %s, title: %s", err, tag, title)
-		return nil, err
-	}
-	return article, nil
+type ArticleView struct {
+	ID    uint64
+	Title string
+	HTML  string
 }
 
-// 获取同一 Tag 下的文章名列表
-func GetArticleListByTag(tag string) ([]string, error) {
-	articleNames, err := db.GetArticleListByTag(tag)
+// 获取文章详情
+func GetArticleDetail(articleID uint64) serializer.Response {
+	article, err := models.GetArticleByID(articleID)
 	if err != nil {
-		log.Errorf("Get article list by tag failed: %v, tag: %s", err, tag)
-		return nil, err
-	}
-	return articleNames, nil
-}
-
-// 添加 Articles
-func AddArticles(articles []*db.Article) error {
-	var err error
-	for _, article := range articles {
-		err = db.AddArticle(article)
-		if err != nil {
-			log.Errorf("Add articles failed: %v, article: %v", article, err)
-			return err
+		if err == gorm.ErrRecordNotFound {
+			return serializer.ParamErrorResponse("文章 ID 不存在", err)
 		}
+		return serializer.DBErrorResponse("", err)
 	}
-	return nil
+	view := ArticleView{
+		ID:    article.ID,
+		Title: article.Title,
+		HTML:  article.HTML,
+	}
+	return serializer.SuccessResponse(view, "")
+}
+
+// 获取某 Tag 下的文章列表
+func GetArticleListByTagID(tagID uint64) serializer.Response {
+	articles, err := models.GetArticleInfosByTagID(tagID)
+	if err != nil {
+		return serializer.DBErrorResponse("", err)
+	}
+	return serializer.SuccessResponse(articles, "")
+}
+
+// 批量添加 Articles
+func addArticles(articles []*models.Article) error {
+	err := models.AddArticles(articles)
+	return err
+}
+
+// deleteArticlesByTag 删除某 Tag 下的 Article
+func deleteArticlesByTag(tagID uint64) error {
+	err := models.DeleteArticlesByTagID(tagID)
+	return err
+}
+
+// deleteArticlesByRepo 删除某 Repo 下的 Article
+func deleteArticlesByRepo(repoID uint64) error {
+	err := models.DeleteArticlesByRepoID(repoID)
+	return err
+}
+
+// TruncateArticles 清空所有 Articles
+func truncateArticles() error {
+	err := models.TruncateArticles()
+	return err
 }

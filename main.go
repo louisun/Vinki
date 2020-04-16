@@ -4,23 +4,24 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/jinzhu/configor"
-	"github.com/vinki/db"
+	"github.com/vinki/bootstrap"
+	"github.com/vinki/pkg/conf"
+	"github.com/vinki/pkg/utils"
 	"github.com/vinki/routers"
-	"github.com/vinki/utils"
 )
 
-func main() {
-	// 1. Load Configs
-	configFile := flag.String("c", "./conf/config.yml", "configuration file")
+func init() {
+	var confPath string
+	flag.StringVar(&confPath, "c", "/Users/louisun/.vinki/code/config.yml", "configuration file")
 	flag.Parse()
-	configor.Load(&utils.Config, *configFile)
+	bootstrap.Init(confPath)
+}
 
-	// 2. Init Database
-	db.InitDatabase()
-	defer db.CloseDB()
-
-	// 3. Load Routes
-	r := routers.LoadRoutes()
-	r.Run(fmt.Sprintf(":%d", utils.Config.Server.Port))
+func main() {
+	// 初始化路由
+	engine := routers.InitRouter()
+	utils.Log().Infof("Listening: %d", conf.GlobalConfig.System.Port)
+	if err := engine.Run(fmt.Sprintf(":%d", conf.GlobalConfig.System.Port)); err != nil {
+		utils.Log().Errorf("无法启动服务端口 [%d]: %s", conf.GlobalConfig.System.Port, err)
+	}
 }

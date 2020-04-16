@@ -1,9 +1,20 @@
-server:
-  port: 8080
+#database:
+#  type: "sqlite3"
 
-directory:
-  root: "./repository"
+#redis:
+#  host: "localhost"
+#  port: 1234
 
-custom:
-  tag: "./conf/tag.md"
-  home: "./conf/home.md"
+system:
+  debug: true
+  port: 6166
+
+repositories:
+  - root: "./repository"
+    exclude:
+      - "Fold"
+      - "Effective Java"
+    fold:
+      - "[C] Database"
+      - "[C] 分布式"
+

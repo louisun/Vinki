@@ -2,14 +2,14 @@ version: "2.1"
 
 services:
   vinki-blog:
-    container_name: vinki-blog
+    container_name: vinki-code
     image: renzo/vinki
     build: .
     ports:
       - "8001:8080"
     volumes:
-      - /Users/louisun/.vinki/blog:/vinki/conf
-      - /Users/louisun/Cloudz/笔记/Blog:/vinki/repository
+      - /Users/louisun/.vinki/code:/vinki/conf
+      - "/Users/louisun/Cloudz/Notes/Code:/vinki/repository"
     restart: always
     networks:
       - vinki-network
@@ -17,22 +17,6 @@ services:
       vinki-postgres:
         condition: service_healthy
 
-  vinki-gr:
-    container_name: vinki-gr
-    image: renzo/vinki
-    build: .
-    ports:
-      - "8002:8080"
-    volumes:
-      - /Users/louisun/.vinki/gr:/vinki/conf
-      - "/Users/louisun/Blog/GraduateArtical/Harmony GA:/vinki/repository"
-
-    restart: always
-    networks:
-      - vinki-network
-    depends_on:
-      vinki-postgres:
-        condition: service_healthy
 
   vinki-postgres:
     container_name: vinki-postgres

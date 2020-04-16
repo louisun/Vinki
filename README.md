@@ -1,7 +1,9 @@
 # Vinki
 
-> Vinki is a light weight personal wiki server. 
-> 
-> Read wiki in an elegant way.
+Vinki 一款是面向个人的轻量级 wiki 服务，其核心用途是快速预览和查询知识文档，特色是服务端文档由本地文件系统映射。
 
-![](https://bucket-1255905387.cos.ap-shanghai.myqcloud.com/2020-02-14-21-30-30_r72.png)
+本地文档管理在安全性、可迁移性上都比在线第三方服务更好，但缺乏快速、便捷的查询和浏览方式，Vinki 旨在提供一种更优雅的方式利用自己的知识库。
+
+Vinki 将文档的编辑、管理，与浏览、查询拆分，不对原始文件的组织形式做任何更改，不具有侵入性和依赖性。
+
+用户在本地目录下编辑 Markdown 文件，通过配置 Vinki 映射目录，即可生成在线的 wiki 文档，同时用户可以随时在本地编辑文档。
