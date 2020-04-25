@@ -13,7 +13,7 @@ var DefaultLog *logrus.Logger
 
 func Log() *logrus.Logger {
 	once.Do(func() {
-		DefaultLog = NewLog(logrus.InfoLevel, "vinki.log")
+		DefaultLog = NewLog(logrus.DebugLevel, "vinki.log")
 	})
 	return DefaultLog
 }

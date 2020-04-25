@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/vinki/pkg/conf"
+	"github.com/louisun/vinki/pkg/conf"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
-	"github.com/vinki/pkg/utils"
+	"github.com/louisun/vinki/pkg/utils"
 )
 
 var DB *gorm.DB

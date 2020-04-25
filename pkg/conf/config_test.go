@@ -3,7 +3,7 @@ package conf
 import (
 	"testing"
 
-	"github.com/vinki/pkg/utils"
+	"github.com/louisun/vinki/pkg/utils"
 )
 
 func TestInitConfig(t *testing.T) {

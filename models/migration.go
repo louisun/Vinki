@@ -1,8 +1,8 @@
 package models
 
 import (
-	"github.com/vinki/pkg/conf"
-	"github.com/vinki/pkg/utils"
+	"github.com/louisun/vinki/pkg/conf"
+	"github.com/louisun/vinki/pkg/utils"
 )
 
 // migration 初始化数据表

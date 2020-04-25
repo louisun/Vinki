@@ -21,7 +21,7 @@ func (Tag) TableName() string {
 }
 
 type TagInfo struct {
-	ID   uint   // 标签 ID
+	ID   uint64 // 标签 ID
 	Name string // 标签名
 }
 
@@ -77,29 +77,49 @@ func GetTagViewByID(tagID uint64) (TagView, error) {
 
 // GetFlatTagViewByID 通过 TagID 获取平铺的 TagView
 func GetFlatTagViewByID(tagID uint64) (TagView, error) {
+	var tag Tag
 	var list []TagInfo
-	tagView, err := GetTagViewByID(tagID)
-	if err != nil {
-		return tagView, err
+	var tagView TagView
+	// 本标签信息
+	result := DB.Where("id = ?", tagID).Select("id, name, path").Find(&tag)
+	if result.Error != nil {
+		return tagView, result.Error
 	}
-	for _, tagInfo := range tagView.SubTags {
-		traverseTagInfo(&tagInfo, list)
+	// 一级子标签列表
+	var subTags []Tag
+	result = DB.Model(&Tag{}).Where("parent_path = ?", tag.Path).Select("id, name, path").Find(&subTags)
+	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
+		return tagView, result.Error
 	}
-	// 替换 SubTags 为所有子标签
+	// 多级子标签列表
+	for _, subTag := range subTags {
+		list = append(list, TagInfo{
+			subTag.ID,
+			subTag.Name,
+		})
+		traverseTagInfo(&list, &subTag)
+	}
+	tagView.ID = tag.ID
+	tagView.Name = tag.Name
 	tagView.SubTags = list
 	return tagView, nil
 }
 
-func traverseTagInfo(tagInfo *TagInfo, list []TagInfo) {
-	var subTags []TagInfo
-	result := DB.Model(&Tag{}).Where("parent_path = ?", tagInfo.ID).Select("id, name").Scan(&subTags)
+func traverseTagInfo(list *[]TagInfo, parentTag *Tag) {
+	var subTags []Tag
+	result := DB.Model(&Tag{}).Where("parent_path = ?", parentTag.Path).Select("id, name, path").Find(&subTags)
 	// 无子标签也立即返回
 	if result.Error != nil {
 		return
 	}
-	list = append(list, subTags...)
-	for _, subTagInfo := range subTags {
-		traverseTagInfo(&subTagInfo, list)
+	for _, tag := range subTags {
+		*list = append(*list, TagInfo{
+			tag.ID,
+			tag.Name,
+		})
+	}
+	for _, tag := range subTags {
+		traverseTagInfo(list, &tag)
 	}
 }
 

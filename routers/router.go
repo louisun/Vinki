@@ -1,13 +1,29 @@
 package routers
 
 import (
-	"github.com/vinki/routers/controllers"
+	"time"
+
+	"github.com/gin-contrib/static"
+	"github.com/louisun/vinki/bootstrap"
+
+	"github.com/gin-contrib/cors"
+	"github.com/louisun/vinki/routers/controllers"
 
 	"github.com/gin-gonic/gin"
 )
 
 func InitRouter() *gin.Engine {
 	r := gin.Default()
+	if gin.Mode() == gin.TestMode {
+		r.Use(cors.New(cors.Config{
+			AllowAllOrigins:  true,
+			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
+			AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type"},
+			AllowCredentials: true,
+			MaxAge:           12 * time.Hour,
+		}))
+	}
+	r.Use(static.Serve("/", bootstrap.StaticFS))
 
 	// api 接口
 	v1 := r.Group("/api/v1")

@@ -8,13 +8,13 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/vinki/pkg/serializer"
+	"github.com/louisun/vinki/pkg/serializer"
 
-	"github.com/vinki/pkg/conf"
+	"github.com/louisun/vinki/pkg/conf"
 
-	"github.com/vinki/models"
+	"github.com/louisun/vinki/models"
 
-	"github.com/vinki/pkg/utils"
+	"github.com/louisun/vinki/pkg/utils"
 )
 
 // RefreshGlobal 全局刷新

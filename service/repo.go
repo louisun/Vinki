@@ -2,8 +2,8 @@ package service
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/vinki/models"
-	"github.com/vinki/pkg/serializer"
+	"github.com/louisun/vinki/models"
+	"github.com/louisun/vinki/pkg/serializer"
 )
 
 func GetRepoInfos() serializer.Response {

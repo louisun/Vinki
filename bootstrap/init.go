@@ -2,9 +2,9 @@ package bootstrap
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/vinki/models"
-	"github.com/vinki/pkg/conf"
-	"github.com/vinki/pkg/utils"
+	"github.com/louisun/vinki/models"
+	"github.com/louisun/vinki/pkg/conf"
+	"github.com/louisun/vinki/pkg/utils"
 )
 
 func Init(path string) {
@@ -25,7 +25,7 @@ func Init(path string) {
 	models.Init()
 
 	// 初始化静态文件系统 StaticFS
-	//InitStatic()
+	InitStatic()
 
 	// 初始化通用鉴权器
 	//auth.Init()

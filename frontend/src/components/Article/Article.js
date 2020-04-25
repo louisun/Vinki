@@ -1,170 +1,372 @@
-import React from 'react';
+import '../../assets/css/markdown.css';
+import '../../assets/css/nord.css';
 
-import { makeStyles } from '@material-ui/core';
-import Avatar from '@material-ui/core/Avatar';
-import Button from '@material-ui/core/Button';
+import React, { Component } from 'react';
+
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
+
+import { faHashtag } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
-import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import Hidden from '@material-ui/core/Hidden';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import ListItemText from '@material-ui/core/ListItemText';
+import {
+  withStyles,
+  withTheme,
+} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
-import FolderIcon from '@material-ui/icons/Folder';
 
-import Toc from './Toc';
+import {
+  setArticleList,
+  setCurrentTag,
+} from '../../actions';
+import cardImage from '../../assets/img/card.png';
+import API from '../../middleware/Api';
+import { isEmptyObject } from '../../utils';
+import Hilight from './Highlight';
 
-// 实际是 css
-const useStyles = makeStyles((theme) => ({
+const mapStateToProps = state => {
+    return {
+        currentTag: state.tag.currentTag,
+        articleList: state.tag.articleList,
+    }
+}
+
+const mapDispatchToProps = dispatch => {
+    return {
+        setCurrentTag: currentTag => {
+            dispatch(setCurrentTag(currentTag))
+        },
+        setArticleList: articleList => {
+            dispatch(setArticleList(articleList))
+        },
+    }
+}
+
+
+const styles = (theme) => ({
+    left: {
+        flex: "0 0 250px",
+    },
     leftWrapper: {
         position: "fixed",
         top: "50px",
         left: "0",
     },
-
+    mid: {
+        marginTop: "30px",
+        minWidth: "500px",
+        flex: "1 1",
+    },
     midWrapper: {
         margin: "auto",
         maxWidth: "1000px",
         padding: "20px 60px 20px 60px",
         backgroundColor: "#FFFFFF",
         boxShadow: "0 4px 6px rgba(184,194,215,0.25), 0 5px 7px rgba(184,194,215,0.1)",
-        borderRadius: "8px"
+        borderRadius: "8px",
+        marginBottom: "50px"
     },
-    left: {
-        flex: "0 0 250px",
-    },
-    mid: {
-        marginTop: "30px",
-        flex: "1 0",
-    },
-
     card: {
         marginTop: "30px",
         maxWidth: "220px",
         marginLeft: "20px",
     },
-  }));
-  
-function generate(element) {
-    return [0, 1, 2].map((value) =>
-        React.cloneElement(element, {
-            key: value,
-        }),
-    );
-}
+    articleList: {
+        maxHeight: "50vh",
+        overflowY: "scroll",
+        '&::-webkit-scrollbar': {
+            width: '0.4em'
+        },
+        '&::-webkit-scrollbar-track': {
+            boxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)',
+        },
+        '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(0,0,0,.1)',
+            outline: '1px solid slategrey',
+        }
+    },
+    right: {
+        flex: "0 0 250px",
+    },
+    rightWrapper: {
+        position: "fixed",
+        top: "50px",
+    },
+    toc: {
+        marginTop: "30px",
+        padding: "0 20px 0 20px",
+        maxWidth: "250px",
+        color: "#4C566A",
+    },
+    tocList: {
+        maxHeight: "70vh",
+        overflowY: "scroll",
+        '&::-webkit-scrollbar': {
+            width: '0.4em'
+        },
+        '&::-webkit-scrollbar-track': {
+            boxShadow: 'inset 0 0 6px rgba(0,0,0,0.00)',
+        },
+        '&::-webkit-scrollbar-thumb': {
+            backgroundColor: 'rgba(0,0,0,.1)',
+            outline: '1px solid slategrey',
+        }
+    },
+    tocItem: {
+        paddingTop: "4px",
+        paddingBottom: "2px",
+        borderLeft: "3px #F2F4F8 solid",
+        "&:hover": {
+            borderLeft: "3px #4E5668 solid",
+        },
+    },
+    tocH1Item: {
+        paddingTop: "4px",
+        paddingBottom: "2px",
+        backgroundColor: "#E9EAEE",
+        borderLeft: "3px #88C0D0 solid",
+        "&:hover": {
+            borderLeft: "3px #88C0D0 solid",
+        },
+    },
+    tocH1: {
+        color: "#2E3640 !important",
+        fontSize: "1.1em",
+    },
+    tocH2: {
+        // textIndent: "1em",
+        color: "#2E3540 !important",
+        fontWeight: "bold !important",
+        fontSize: "1.1em",
+    },
+    tocH3: {
+        // textIndent: "2em",
+        color: "#4E5668 !important",
+        fontSize: "1.1em",
+    },
+    tocH4: {
+        textIndent: "1em",
+        color: "#4E5668 !important",
+        fontStyle: "italic",
+    },
+});
 
-export default function Article() {
-    const classes = useStyles()
-    
-    return(
-        <React.Fragment>
-        <Hidden mdDown>
-        <div className={classes.left} >
-            <div className={classes.leftWrapper} >
-                <Card className={classes.card}>
-                    <CardActionArea>
-                        <CardMedia
-                            component="img"
-                            alt="Contemplative Reptile"
-                            height="140"
-                            image="https://bucket-1255905387.cos.ap-shanghai.myqcloud.com/2020-04-14-00-33-02_r61.png"
-                            title="Contemplative Reptile"
+
+class ArticleComponent extends Component {
+    constructor(props) {
+        super(props)
+
+        this.state = {
+            article: {},
+            refresh: false,
+            headings: [], // 用来存储目录结构
+        }
+    }
+
+    componentDidMount() {
+        API.get(`/articles/${this.props.match.params.articleID}`).then(response => {
+            this.setState({ article: response.data })
+        })
+        this.setState({ refresh: true })
+        if (isEmptyObject(this.props.currentTag)) {
+            API.get(`/tags/${this.props.match.params.tagID}/articles`).then(response => {
+                this.props.setCurrentTag({
+                    ID: response.data.ID,
+                    Name: response.data.Name,
+                })
+                this.props.setArticleList(response.data.ArticleInfos)
+            })
+        }
+        setTimeout(() => {
+            this.getHeadings(['H1', 'H2', 'H3', 'H4']);
+        }, 300);
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        let mountToc = false
+        if (!isEmptyObject(this.state.article)) {
+            if (isEmptyObject(prevState.article)) {
+                mountToc = true
+            } else if (this.state.article.ID != prevState.article.ID) {
+                mountToc = true
+            }
+            if (mountToc) {
+                setTimeout(() => {
+                    this.getHeadings(['H1', 'H2', 'H3', 'H4']);
+                }, 300);
+            }
+        }
+    }
+
+
+
+    handleTagClick = (event) => {
+        this.props.history.push("/tags")
+    }
+
+    handleArticleClick = (event, id) => {
+        API.get(`/articles/${id}`).then(response => {
+            this.setState({
+                article: response.data,
+                headings: [],
+            })
+        })
+        window.scrollTo(0, 0)
+    }
+
+    getHeadings = (headings) => {
+        if (document.querySelector(".markdown-content") === null) {
+            return
+        }
+        let headingList = [];
+        document.querySelector(".markdown-content").childNodes.forEach((item) => {
+            if (headings.includes(item.nodeName)) {
+                headingList.push({
+                    type: item.nodeName,
+                    text: item.getAttribute('id'),
+                    offsetTop: item.offsetTop - 60
+                });
+            }
+        });
+
+        this.setState({
+            headings: headingList,
+        });
+    }
+
+
+    scrollPage = (item) => {
+        let anchorEl = document.getElementById(item.text);
+        if (anchorEl) {
+            const bodyRect = document.body.getBoundingClientRect().top;
+            const elementRect = anchorEl.getBoundingClientRect().top;
+            const elPosition = elementRect - bodyRect;
+            const offPostion = elPosition - 60;
+            window.scrollTo({
+                top: offPostion,
+                behavior: "instant"
+            });
+        }
+    }
+
+    render() {
+        const { classes } = this.props
+        const generateArticles = (articleList) => {
+            let l = []
+            for (let i = 0; i < articleList.length; i++) {
+                l.push(
+                    <ListItem button={true} onClick={(event) => {
+                        this.handleArticleClick(event, articleList[i].ID)
+                    }}>
+                        <ListItemText
+                            primary={articleList[i].Title}
+                            style={{ color: "#4C566A", textShadow: "0 0 .9px #E5E9F1, 0 0 .9px #E5E9F1", }}
+                            primaryTypographyProps={{ variant: "subtitle1" }}
                         />
-                        <CardContent>
-                            <Typography gutterBottom variant="h5" component="h2">
-                                Docker
-                            </Typography>
-                            <Typography variant="body2" color="textSecondary" component="p">
-                                标签
-                            </Typography>
-                        </CardContent>
-                    </CardActionArea>
-                    <CardActions>
-                        <Button size="small" color="primary">
-                            Share
-                        </Button>
-                        <Button size="small" color="primary">
-                            Learn More
-                        </Button>
-                    </CardActions>
-                    <List>
-                        {generate(
-                            <ListItem>
-                                <ListItemAvatar>
-                                    <Avatar>
-                                        <FolderIcon/>
-                                    </Avatar>
-                                </ListItemAvatar>
-                                <ListItemText
-                                    primary="Single-line item"
-                                />
-                            </ListItem>,
-                        )}
-                    </List>
-                </Card>
-            </div>
-        </div>
-    </Hidden>
+                    </ListItem>,
+                )
+            }
+            return <List className={classes.articleList}> {l} </List>
+        }
+        const generateTOC = (itemList) => {
+            let l = []
+            for (let i = 0; i < itemList.length; i++) {
+                let className1 = ""
+                let className2 = ""
+                if (itemList[i].type === "H1") {
+                    className1 = classes.tocH1Item
+                    className2 = classes.tocH1
+                } else if (itemList[i].type === "H2") {
+                    className1 = classes.tocItem
+                    className2 = classes.tocH2
+                } else if (itemList[i].type === "H3") {
+                    className1 = classes.tocItem
+                    className2 = classes.tocH3
+                } else if (itemList[i].type === "H4") {
+                    className1 = classes.tocItem
+                    className2 = classes.tocH4
+                }
+                l.push(
+                    <ListItem button={true} onClick={(event) => {
+                        this.scrollPage(itemList[i])
+                    }} className={className1}>
+                        <span style={{ color: "#4C566A", textShadow: "0 0 .9px #E5E9F1, 0 0 .9px #E5E9F1", }} className={className2}>
+                            {itemList[i].text}
+                        </span>
+                    </ListItem>,
+                )
+            }
+            return <List className={classes.tocList}> {l} </List>
 
-    <div className={classes.mid}>
-        <div className={classes.midWrapper}>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. </p>
+        }
+        return (
+            <React.Fragment>
+                <Hidden mdDown>
+                    <div className={classes.left}>
+                        <div className={classes.leftWrapper}>
+                            <Card className={classes.card}>
+                                <CardActionArea onClick={this.handleTagClick}>
+                                    <CardMedia
+                                        component="img"
+                                        alt="Contemplative Reptile"
+                                        height="140"
+                                        image={cardImage}
+                                        title="Contemplative Reptile"
+                                    />
+                                    <CardContent>
+                                        <Typography gutterBottom variant="h5" component="h2">
+                                            {this.props.currentTag.Name}
+                                        </Typography>
+                                        <Typography variant="body2" color="textSecondary" component="p">
+                                            <FontAwesomeIcon icon={faHashtag} style={{ fontSize: "0.9rem", marginRight: "0.4em" }} />
+                                            标签
+                                        </Typography>
+                                    </CardContent>
+                                </CardActionArea>
+                                {generateArticles(this.props.articleList)}
+                            </Card>
+                        </div>
+                    </div>
+                </Hidden>
 
-            <p>Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor. Maecenas mattis. Sed convallis tristique sem. Proin ut ligula vel nunc egestas porttitor. Morbi lectus risus, iaculis vel, suscipit quis, luctus non, massa. Fusce ac turpis quis ligula lacinia aliquet. Mauris ipsum. Nulla metus metus, ullamcorper vel, tincidunt sed, euismod in, nibh. </p>
+                <div className={classes.mid}>
+                    <div className={classes.midWrapper}>
+                        <div class="markdown-body" ref={(ref) => { this.scroll = ref }} >
+                            <Hilight content={this.state.article.HTML}></Hilight>
+                        </div>
+                    </div>
+                </div>
 
-            <p>Quisque volutpat condimentum velit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam nec ante. Sed lacinia, urna non tincidunt mattis, tortor neque adipiscing diam, a cursus ipsum ante quis turpis. Nulla facilisi. Ut fringilla. Suspendisse potenti. Nunc feugiat mi a tellus consequat imperdiet. Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luctus suscipit. Sed lectus. </p>
-
-            <p>Integer euismod lacus luctus magna. Quisque cursus, metus vitae pharetra auctor, sem massa mattis sem, at interdum magna augue eget diam. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi lacinia molestie dui. Praesent blandit dolor. Sed non quam. In vel mi sit amet augue congue elementum. Morbi in ipsum sit amet pede facilisis laoreet. Donec lacus nunc, viverra nec, blandit vel, egestas et, augue. Vestibulum tincidunt malesuada tellus. Ut ultrices ultrices enim. Curabitur sit amet mauris. Morbi in dui quis est pulvinar ullamcorper. </p>
-
-            <p>Nulla facilisi. Integer lacinia sollicitudin massa. Cras metus. Sed aliquet risus a tortor. Integer id quam. Morbi mi. Quisque nisl felis, venenatis tristique, dignissim in, ultrices sit amet, augue. Proin sodales libero eget ante. Nulla quam. Aenean laoreet. Vestibulum nisi lectus, commodo ac, facilisis ac, ultricies eu, pede. </p>
-
-            <p>Ut orci risus, accumsan porttitor, cursus quis, aliquet eget, justo. Sed pretium blandit orci. Ut eu diam at pede suscipit sodales. Aenean lectus elit, fermentum non, convallis id, sagittis at, neque. Nullam mauris orci, aliquet et, iaculis et, viverra vitae, ligula. Nulla ut felis in purus aliquam imperdiet. Maecenas aliquet mollis lectus. Vivamus consectetuer risus et tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. </p>
-
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. </p>
-
-            <p>Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor. Maecenas mattis. Sed convallis tristique sem. Proin ut ligula vel nunc egestas porttitor. Morbi lectus risus, iaculis vel, suscipit quis, luctus non, massa. Fusce ac turpis quis ligula lacinia aliquet. Mauris ipsum. Nulla metus metus, ullamcorper vel, tincidunt sed, euismod in, nibh. </p>
-
-            <p>Quisque volutpat condimentum velit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam nec ante. Sed lacinia, urna non tincidunt mattis, tortor neque adipiscing diam, a cursus ipsum ante quis turpis. Nulla facilisi. Ut fringilla. Suspendisse potenti. Nunc feugiat mi a tellus consequat imperdiet. Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luctus suscipit. Sed lectus. </p>
-
-            <p>Integer euismod lacus luctus magna. Quisque cursus, metus vitae pharetra auctor, sem massa mattis sem, at interdum magna augue eget diam. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi lacinia molestie dui. Praesent blandit dolor. Sed non quam. In vel mi sit amet augue congue elementum. Morbi in ipsum sit amet pede facilisis laoreet. Donec lacus nunc, viverra nec, blandit vel, egestas et, augue. Vestibulum tincidunt malesuada tellus. Ut ultrices ultrices enim. Curabitur sit amet mauris. Morbi in dui quis est pulvinar ullamcorper. </p>
-
-            <p>Nulla facilisi. Integer lacinia sollicitudin massa. Cras metus. Sed aliquet risus a tortor. Integer id quam. Morbi mi. Quisque nisl felis, venenatis tristique, dignissim in, ultrices sit amet, augue. Proin sodales libero eget ante. Nulla quam. Aenean laoreet. Vestibulum nisi lectus, commodo ac, facilisis ac, ultricies eu, pede. </p>
-
-            <p>Ut orci risus, accumsan porttitor, cursus quis, aliquet eget, justo. Sed pretium blandit orci. Ut eu diam at pede suscipit sodales. Aenean lectus elit, fermentum non, convallis id, sagittis at, neque. Nullam mauris orci, aliquet et, iaculis et, viverra vitae, ligula. Nulla ut felis in purus aliquam imperdiet. Maecenas aliquet mollis lectus. Vivamus consectetuer risus et tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. </p>
-
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. </p>
-
-            <p>Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor. Maecenas mattis. Sed convallis tristique sem. Proin ut ligula vel nunc egestas porttitor. Morbi lectus risus, iaculis vel, suscipit quis, luctus non, massa. Fusce ac turpis quis ligula lacinia aliquet. Mauris ipsum. Nulla metus metus, ullamcorper vel, tincidunt sed, euismod in, nibh. </p>
-
-            <p>Quisque volutpat condimentum velit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam nec ante. Sed lacinia, urna non tincidunt mattis, tortor neque adipiscing diam, a cursus ipsum ante quis turpis. Nulla facilisi. Ut fringilla. Suspendisse potenti. Nunc feugiat mi a tellus consequat imperdiet. Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luctus suscipit. Sed lectus. </p>
-
-            <p>Integer euismod lacus luctus magna. Quisque cursus, metus vitae pharetra auctor, sem massa mattis sem, at interdum magna augue eget diam. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi lacinia molestie dui. Praesent blandit dolor. Sed non quam. In vel mi sit amet augue congue elementum. Morbi in ipsum sit amet pede facilisis laoreet. Donec lacus nunc, viverra nec, blandit vel, egestas et, augue. Vestibulum tincidunt malesuada tellus. Ut ultrices ultrices enim. Curabitur sit amet mauris. Morbi in dui quis est pulvinar ullamcorper. </p>
-
-            <p>Nulla facilisi. Integer lacinia sollicitudin massa. Cras metus. Sed aliquet risus a tortor. Integer id quam. Morbi mi. Quisque nisl felis, venenatis tristique, dignissim in, ultrices sit amet, augue. Proin sodales libero eget ante. Nulla quam. Aenean laoreet. Vestibulum nisi lectus, commodo ac, facilisis ac, ultricies eu, pede. </p>
-
-            <p>Ut orci risus, accumsan porttitor, cursus quis, aliquet eget, justo. Sed pretium blandit orci. Ut eu diam at pede suscipit sodales. Aenean lectus elit, fermentum non, convallis id, sagittis at, neque. Nullam mauris orci, aliquet et, iaculis et, viverra vitae, ligula. Nulla ut felis in purus aliquam imperdiet. Maecenas aliquet mollis lectus. Vivamus consectetuer risus et tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. </p>
-
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. </p>
-
-            <p>Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor. Maecenas mattis. Sed convallis tristique sem. Proin ut ligula vel nunc egestas porttitor. Morbi lectus risus, iaculis vel, suscipit quis, luctus non, massa. Fusce ac turpis quis ligula lacinia aliquet. Mauris ipsum. Nulla metus metus, ullamcorper vel, tincidunt sed, euismod in, nibh. </p>
-
-            <p>Quisque volutpat condimentum velit. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Nam nec ante. Sed lacinia, urna non tincidunt mattis, tortor neque adipiscing diam, a cursus ipsum ante quis turpis. Nulla facilisi. Ut fringilla. Suspendisse potenti. Nunc feugiat mi a tellus consequat imperdiet. Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in justo eu magna luctus suscipit. Sed lectus. </p>
-
-            <p>Integer euismod lacus luctus magna. Quisque cursus, metus vitae pharetra auctor, sem massa mattis sem, at interdum magna augue eget diam. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Morbi lacinia molestie dui. Praesent blandit dolor. Sed non quam. In vel mi sit amet augue congue elementum. Morbi in ipsum sit amet pede facilisis laoreet. Donec lacus nunc, viverra nec, blandit vel, egestas et, augue. Vestibulum tincidunt malesuada tellus. Ut ultrices ultrices enim. Curabitur sit amet mauris. Morbi in dui quis est pulvinar ullamcorper. </p>
-
-            <p>Nulla facilisi. Integer lacinia sollicitudin massa. Cras metus. Sed aliquet risus a tortor. Integer id quam. Morbi mi. Quisque nisl felis, venenatis tristique, dignissim in, ultrices sit amet, augue. Proin sodales libero eget ante. Nulla quam. Aenean laoreet. Vestibulum nisi lectus, commodo ac, facilisis ac, ultricies eu, pede. </p>
-
-            <p>Ut orci risus, accumsan porttitor, cursus quis, aliquet eget, justo. Sed pretium blandit orci. Ut eu diam at pede suscipit sodales. Aenean lectus elit, fermentum non, convallis id, sagittis at, neque. Nullam mauris orci, aliquet et, iaculis et, viverra vitae, ligula. Nulla ut felis in purus aliquam imperdiet. Maecenas aliquet mollis lectus. Vivamus consectetuer risus et tortor. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. </p>
-        </div>
-    </div>
-
-    <Hidden smDown>
-        <Toc/>
-    </Hidden>
-    </React.Fragment>
-    );
+                <Hidden smDown>
+                    <div className={classes.right}>
+                        <div className={classes.rightWrapper}>
+                            <div className={classes.toc}>
+                                {generateTOC(this.state.headings)}
+                            </div>
+                        </div>
+                    </div>
+                </Hidden>
+            </React.Fragment >
+        )
+    }
 }
+
+ArticleComponent.propTypes = {
+    classes: PropTypes.object.isRequired,
+    theme: PropTypes.object.isRequired
+};
+
+const Article = connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(withTheme(withStyles(styles)(withRouter(ArticleComponent))));
+
+export default Article;

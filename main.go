@@ -4,10 +4,10 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/vinki/bootstrap"
-	"github.com/vinki/pkg/conf"
-	"github.com/vinki/pkg/utils"
-	"github.com/vinki/routers"
+	"github.com/louisun/vinki/bootstrap"
+	"github.com/louisun/vinki/pkg/conf"
+	"github.com/louisun/vinki/pkg/utils"
+	"github.com/louisun/vinki/routers"
 )
 
 func init() {

@@ -4,8 +4,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/vinki/pkg/serializer"
-	"github.com/vinki/service"
+	"github.com/louisun/vinki/pkg/serializer"
+	"github.com/louisun/vinki/service"
 )
 
 // 获取某文章详细信息
@@ -29,10 +29,17 @@ func GetTagView(c *gin.Context) {
 		err error
 	)
 	s := c.Param("id")
+	flat := c.Query("flat")
 	if id, err = strconv.ParseUint(s, 10, 64); err != nil {
 		c.JSON(200, serializer.ParamErrorResponse("tag id 错误", err))
 	}
-	res := service.GetTagViewByID(id)
+	var res serializer.Response
+	if flat == "true" {
+		res = service.GetTagViewByID(id, true)
+	} else {
+		res = service.GetTagViewByID(id, false)
+
+	}
 	c.JSON(200, res)
 }
 

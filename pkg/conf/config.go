@@ -2,7 +2,7 @@ package conf
 
 import (
 	"github.com/jinzhu/configor"
-	"github.com/vinki/pkg/utils"
+	"github.com/louisun/vinki/pkg/utils"
 )
 
 // 全局配置变量

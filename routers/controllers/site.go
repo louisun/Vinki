@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/vinki/pkg/serializer"
-	"github.com/vinki/service"
+	"github.com/louisun/vinki/pkg/serializer"
+	"github.com/louisun/vinki/service"
 )
 
 func Ping(c *gin.Context) {

@@ -1,288 +1,58 @@
-export const navitateTo = path => {
-    return {
-        type: "NAVIGATOR_TO",
-        path: path
-    };
-};
+// Actions
 
-export const navitateUp = () => {
+export const setRepos = repos => {
     return {
-        type: "NAVIGATOR_UP"
-    };
-};
-
-export const drawerToggleAction = open => {
-    return {
-        type: "DRAWER_TOGGLE",
-        open: open
-    };
-};
-
-export const dragAndDrop = (source,target) => {
-    return {
-        type: "DRAG_AND_DROP",
-        source: source,
-        target: target,
-    };
-};
-
-export const changeViewMethod = method => {
-    return {
-        type: "CHANGE_VIEW_METHOD",
-        method: method
-    };
-};
-
-export const changeSubTitle = title =>{
-    return {
-        type: "CHANGE_SUB_TITLE",
-        title: title
-    };
-};
-
-export const toggleDaylightMode = ()=>{
-    return {
-        type: "TOGGLE_DAYLIGHT_MODE",
-    };
-};
-
-export const changeSortMethod = method => {
-    return {
-        type: "CHANGE_SORT_METHOD",
-        method: method
-    };
-};
-
-export const updateFileList = list => {
-    return {
-        type: "UPDATE_FILE_LIST",
-        list: list
-    };
-};
-
-export const changeContextMenu = (type, open) => {
-    return {
-        type: "CHANGE_CONTEXT_MENU",
-        menuType: type,
-        open: open
-    };
-};
-
-export const addSelectedTarget = targets => {
-    return {
-        type: "ADD_SELECTED_TARGET",
-        targets: targets
-    };
-};
-
-export const setSelectedTarget = targets => {
-    return {
-        type: "SET_SELECTED_TARGET",
-        targets: targets
-    };
-};
-
-export const removeSelectedTarget = id => {
-    return {
-        type: "RMOVE_SELECTED_TARGET",
-        id: id
-    };
-};
-
-export const setNavigatorLoadingStatus = status => {
-    return {
-        type: "SET_NAVIGATOR_LOADING_STATUE",
-        status: status
-    };
-};
-
-export const setNavigatorError = (status, msg) => {
-    return {
-        type: "SET_NAVIGATOR_ERROR",
-        status: status,
-        msg: msg
-    };
-};
-
-export const openCreateFolderDialog = () => {
-    return {
-        type: "OPEN_CREATE_FOLDER_DIALOG"
-    };
-};
-
-export const setUserPopover = anchor => {
-    return {
-        type: "SET_USER_POPOVER",
-        anchor: anchor
-    };
-};
-
-export const setShareUserPopover = anchor => {
-    return {
-        type: "SET_SHARE_USER_POPOVER",
-        anchor: anchor
-    };
-};
-
-export const openRenameDialog = () => {
-    return {
-        type: "OPEN_RENAME_DIALOG"
-    };
-};
-
-export const openResaveDialog = (key) => {
-    return {
-        type: "OPEN_RESAVE_DIALOG",
-        key:key,
-    };
-};
-
-export const openMoveDialog = () => {
-    return {
-        type: "OPEN_MOVE_DIALOG"
-    };
-};
-
-export const openRemoveDialog = () => {
-    return {
-        type: "OPEN_REMOVE_DIALOG"
-    };
-};
-
-export const openShareDialog = () => {
-    return {
-        type: "OPEN_SHARE_DIALOG"
-    };
-};
-
-export const applyThemes = (theme)=>{
-    return {
-        type:'APPLY_THEME',
-        theme:theme,
-    };
-};
-
-export const setSessionStatus = (status)=>{
-    return {
-        type:'SET_SESSION_STATUS',
-        status:status,
-    };
-};
-
-
-export const openMusicDialog = () => {
-    return {
-        type: "OPEN_MUSIC_DIALOG"
-    };
-};
-
-export const openRemoteDownloadDialog = () => {
-    return {
-        type: "OPEN_REMOTE_DOWNLOAD_DIALOG"
-    };
-};
-
-export const openTorrentDownloadDialog = () => {
-    return {
-        type: "OPEN_TORRENT_DOWNLOAD_DIALOG"
-    };
-};
-
-export const openDecompressDialog = () => {
-    return {
-        type: "OPEN_DECOMPRESS_DIALOG"
-    };
-};
-
-export const openCompressDialog = () => {
-    return {
-        type: "OPEN_COMPRESS_DIALOG"
-    };
-};
-
-export const openGetSourceDialog = () => {
-    return {
-        type: "OPEN_GET_SOURCE_DIALOG"
-    };
-};
-
-export const openCopyDialog = () => {
-    return {
-        type: "OPEN_COPY_DIALOG"
-    };
-};
-
-export const openLoadingDialog = (text) => {
-    return {
-        type: "OPEN_LOADING_DIALOG",
-        text: text,
+        type: "SET_REPOS",
+        repos: repos,
     }
-};
+}
 
-export const closeAllModals = () => {
+export const setCurrentRepo = currentRepo => {
     return {
-        type: "CLOSE_ALL_MODALS"
-    };
-};
+        type: "SET_CURRENT_REPO",
+        currentRepo: currentRepo,
+    }
+}
 
-export const toggleSnackbar = (vertical, horizontal, msg, color) => {
+export const setTopTags = topTags => {
     return {
-        type: "TOGGLE_SNACKBAR",
-        vertical: vertical,
-        horizontal: horizontal,
-        msg: msg,
-        color: color
-    };
-};
+        type: "SET_TOP_TAGS",
+        topTags: topTags,
+    }
+}
 
-export const enableLoadUploader = () => {
-    return {
-        type: "ENABLE_LOAD_UPLOADER"
-    };
-};
 
-export const setModalsLoading = status => {
+export const setSecondTags = secondTags => {
     return {
-        type: "SET_MODALS_LOADING",
-        status: status
-    };
-};
+        type: "SET_SECOND_TAGS",
+        secondTags: secondTags,
+    }
+}
 
-export const refreshFileList = () => {
+export const setSubTags = subTags => {
     return {
-        type: "REFRESH_FILE_LIST"
-    };
-};
+        type: "SET_SUB_TAGS",
+        subTags: subTags,
+    }
+}
 
-export const searchMyFile = keywords => {
+export const setCurrentTopTag = currentTopTag => {
     return {
-        type: "SEARCH_MY_FILE",
-        keywords: keywords
-    };
-};
+        type: "SET_CURRENT_TOP_TAG",
+        currentTopTag: currentTopTag,
+    }
+}
 
-export const showImgPreivew = first => {
+export const setCurrentTag = currentTag => {
     return {
-        type: "SHOW_IMG_PREIVEW",
-        first: first
-    };
-};
+        type: "SET_CURRENT_TAG",
+        currentTag: currentTag,
+    }
+}
 
-export const refreshStorage = () => {
+export const setArticleList = articleList => {
     return {
-        type: "REFRESH_STORAGE"
-    };
-};
-
-export const saveFile = () => {
-    return {
-        type: "SAVE_FILE"
-    };
-};
-
-export const setSiteConfig = config => {
-    return {
-        type: "SET_SITE_CONFIG",
-        config: config
-    };
-};
+        type: "SET_ARTICLE_LIST",
+        articleList: articleList,
+    }
+}

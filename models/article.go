@@ -1,9 +1,14 @@
 package models
 
 import (
+	"regexp"
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
+
+var numberRegex = regexp.MustCompile(`^(\d+)\..*`)
 
 type Article struct {
 	ID    uint64 `gorm:"primary_key"`
@@ -17,6 +22,38 @@ type Article struct {
 type ArticleInfo struct {
 	ID    uint64
 	Title string
+}
+
+type Articles []ArticleInfo
+
+func (a Articles) Len() int {
+	return len(a)
+}
+
+func (a Articles) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
+
+func (a Articles) Less(i, j int) bool {
+	matchA := numberRegex.FindStringSubmatch(a[i].Title)
+	matchB := numberRegex.FindStringSubmatch(a[j].Title)
+	var nA = -1
+	var nB = -1
+	if matchA != nil {
+		nA, _ = strconv.Atoi(matchA[1])
+	}
+	if matchB != nil {
+		nB, _ = strconv.Atoi(matchB[1])
+	}
+	if nA != -1 && nB != -1 {
+		return nA < nB
+	} else if nA != -1 && nB == -1 {
+		return true
+	} else if nA == -1 && nB != -1 {
+		return false
+	} else {
+		return a[i].Title < a[j].Title
+	}
 }
 
 func (Article) TableName() string {

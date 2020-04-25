@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 
 	"github.com/gin-gonic/gin"
-	"github.com/vinki/models"
-	"github.com/vinki/pkg/serializer"
+	"github.com/louisun/vinki/models"
+	"github.com/louisun/vinki/pkg/serializer"
 	"gopkg.in/go-playground/validator.v9"
 )
 
