@@ -12,9 +12,9 @@ Vinki 是一款面向个人的轻量级 wiki 服务，用于快速预览和查�
 - 灵活选择多级标签
 - 文档预览：同标签文档列表、TOC 跳转
 
-![](https://bucket-1255905387.cos.ap-shanghai.myqcloud.com/2020-04-25-14-52-48_r78.png)
+![](https://bucket-1255905387.cos.ap-shanghai.myqcloud.com/2020-04-25-15-33-18_r100.png)
 
-![](https://bucket-1255905387.cos.ap-shanghai.myqcloud.com/2020-04-25-15-06-01_r58.png)
+![](https://bucket-1255905387.cos.ap-shanghai.myqcloud.com/2020-04-25-15-33-32_r45.png)
 
 ## Philosophy
 
