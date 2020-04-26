@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export let baseURL = "/api/v1";
+export let baseURL = "api/v1";
 
 export const getBaseURL = () => {
     return baseURL;

@@ -12,7 +12,7 @@ import (
 
 func init() {
 	var confPath string
-	flag.StringVar(&confPath, "c", "/Users/louisun/.vinki/code/config.yml", "configuration file")
+	flag.StringVar(&confPath, "c", "./conf/config.yml", "configuration file")
 	flag.Parse()
 	bootstrap.Init(confPath)
 }

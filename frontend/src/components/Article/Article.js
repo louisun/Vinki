@@ -62,7 +62,7 @@ const styles = (theme) => ({
     },
     mid: {
         marginTop: "30px",
-        minWidth: "500px",
+        minWidth: "300px",
         flex: "1 1",
     },
     midWrapper: {
@@ -107,7 +107,7 @@ const styles = (theme) => ({
         color: "#4C566A",
     },
     tocList: {
-        maxHeight: "70vh",
+        maxHeight: "calc(100vh - 120px)",
         overflowY: "scroll",
         '&::-webkit-scrollbar': {
             width: '0.4em'
@@ -166,16 +166,16 @@ class ArticleComponent extends Component {
 
         this.state = {
             article: {},
-            refresh: false,
             headings: [], // 用来存储目录结构
         }
     }
 
+    // 第一次挂载组件
     componentDidMount() {
         API.get(`/articles/${this.props.match.params.articleID}`).then(response => {
             this.setState({ article: response.data })
+            document.title = this.state.article.Title
         })
-        this.setState({ refresh: true })
         if (isEmptyObject(this.props.currentTag)) {
             API.get(`/tags/${this.props.match.params.tagID}/articles`).then(response => {
                 this.props.setCurrentTag({
@@ -186,22 +186,22 @@ class ArticleComponent extends Component {
             })
         }
         setTimeout(() => {
-            this.getHeadings(['H1', 'H2', 'H3', 'H4']);
+            this.updateTocHeading(['H1', 'H2', 'H3', 'H4']);
         }, 300);
     }
 
+    // 设置新文档后，组件更新
     componentDidUpdate(prevProps, prevState) {
-        let mountToc = false
+        let updateArticle = false
         if (!isEmptyObject(this.state.article)) {
             if (isEmptyObject(prevState.article)) {
-                mountToc = true
+                updateArticle = true
             } else if (this.state.article.ID != prevState.article.ID) {
-                mountToc = true
+                updateArticle = true
             }
-            if (mountToc) {
-                setTimeout(() => {
-                    this.getHeadings(['H1', 'H2', 'H3', 'H4']);
-                }, 300);
+            if (updateArticle) {
+                document.title = this.state.article.Title
+                this.updateTocHeading(['H1', 'H2', 'H3', 'H4']);
             }
         }
     }
@@ -222,17 +222,27 @@ class ArticleComponent extends Component {
         window.scrollTo(0, 0)
     }
 
-    getHeadings = (headings) => {
+    updateTocHeading = (headings) => {
         if (document.querySelector(".markdown-content") === null) {
             return
         }
         let headingList = [];
+        let headingCountMap = {
+            "H1": 0,
+            "H2": 0,
+            "H3": 0,
+            "H4": 0,
+        }
+        let headingID = ""
         document.querySelector(".markdown-content").childNodes.forEach((item) => {
             if (headings.includes(item.nodeName)) {
+                headingCountMap[item.nodeName]++
+                headingID = `vinki-${item.nodeName}-${headingCountMap[item.nodeName]}`
+                item.setAttribute("id", headingID)
                 headingList.push({
                     type: item.nodeName,
-                    text: item.getAttribute('id'),
-                    offsetTop: item.offsetTop - 60
+                    headingID: headingID,
+                    text: item.innerText,
                 });
             }
         });
@@ -243,8 +253,8 @@ class ArticleComponent extends Component {
     }
 
 
-    scrollPage = (item) => {
-        let anchorEl = document.getElementById(item.text);
+    scrollToHeading = (item) => {
+        let anchorEl = document.getElementById(item.headingID);
         if (anchorEl) {
             const bodyRect = document.body.getBoundingClientRect().top;
             const elementRect = anchorEl.getBoundingClientRect().top;
@@ -296,7 +306,7 @@ class ArticleComponent extends Component {
                 }
                 l.push(
                     <ListItem button={true} onClick={(event) => {
-                        this.scrollPage(itemList[i])
+                        this.scrollToHeading(itemList[i])
                     }} className={className1}>
                         <span style={{ color: "#4C566A", textShadow: "0 0 .9px #E5E9F1, 0 0 .9px #E5E9F1", }} className={className2}>
                             {itemList[i].text}

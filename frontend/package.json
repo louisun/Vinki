@@ -13,10 +13,8 @@
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "axios": "^0.19.2",
-    "fg-loadcss": "^2.1.0",
     "font-awesome": "^4.7.0",
     "highlight.js": "^10.0.0",
-    "nord-highlightjs": "^0.1.0",
     "prop-types": "^15.7.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
@@ -24,8 +22,7 @@
     "react-redux": "^7.2.0",
     "react-router-dom": "^5.1.2",
     "react-scripts": "3.4.1",
-    "redux": "^4.0.5",
-    "tocbot": "^4.11.1"
+    "redux": "^4.0.5"
   },
   "scripts": {
     "start": "react-scripts start",

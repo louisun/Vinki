@@ -201,10 +201,8 @@ class TagsComponent extends Component {
         });
     }
     componentDidMount() {
-        if (
-            !isEmptyObject(this.props.currentRepo) &&
-            this.props.topTags.length === 0
-        ) {
+        document.title = "Vinki"
+        if (!isEmptyObject(this.props.currentRepo) && this.props.topTags.length === 0) {
             this.loadTopTags();
         }
     }
