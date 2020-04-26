@@ -1,20 +1,9 @@
-#database:
-#  type: "sqlite3"
-
-#redis:
-#  host: "localhost"
-#  port: 1234
-
 system:
-  debug: true
+  debug: false
   port: 6166
 
 repositories:
   - root: "./repository"
     exclude:
-      - "Fold"
-      - "Effective Java"
-    fold:
-      - "[C] Database"
-      - "[C] 分布式"
-
+      - "A Directory"
+      - "B Directory"

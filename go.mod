@@ -9,6 +9,7 @@ require (
 	github.com/gomarkdown/markdown v0.0.0-20200316172748-fd1f3374857d
 	github.com/jinzhu/configor v1.1.1
 	github.com/jinzhu/gorm v1.9.12
+	github.com/louisun/heyspace v0.0.0-20191225110356-251aac088b89
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/rakyll/statik v0.1.7
 	github.com/sirupsen/logrus v1.4.2

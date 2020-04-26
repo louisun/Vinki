@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/louisun/heyspace/space"
+
 	"github.com/gomarkdown/markdown"
 	"github.com/gomarkdown/markdown/parser"
 )
@@ -51,9 +53,12 @@ func RenderMarkdown(mdPath string) ([]byte, error) {
 		Log().Errorf("Read mdFile %s failed", mdPath)
 		return nil, err
 	}
-	extensions := parser.CommonExtensions | parser.AutoHeadingIDs
+	mdStr := string(md)
+	spaceHandler := space.NewMarkdownHandler(&mdStr)
+	mdBytes := []byte(spaceHandler.HandleText())
+	extensions := parser.CommonExtensions
 	p := parser.NewWithExtensions(extensions)
-	html := markdown.ToHTML(md, p, nil)
+	html := markdown.ToHTML(mdBytes, p, nil)
 	return html, nil
 }
 

@@ -1,16 +1,19 @@
 html, body {
-    margin:0;
-    padding:0;
-    height:100%;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: #F2F4F8;
 }
 
 body {
     /* 解决侧边滑动引起界面抖动 */
-    overflow-y:scroll;
+    overflow-y: scroll;
 }
 
 /*::-webkit-scrollbar {*/
+
 /*    width: 0px!important;*/
+
 /*}*/
 
 #root {
