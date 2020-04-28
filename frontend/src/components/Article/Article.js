@@ -72,7 +72,7 @@ const styles = (theme) => ({
         backgroundColor: "#FFFFFF",
         boxShadow: "0 4px 6px rgba(184,194,215,0.25), 0 5px 7px rgba(184,194,215,0.1)",
         borderRadius: "8px",
-        marginBottom: "50px"
+        marginBottom: "50px",
     },
     card: {
         marginTop: "30px",
@@ -125,7 +125,7 @@ const styles = (theme) => ({
         paddingBottom: "2px",
         borderLeft: "3px #F2F4F8 solid",
         "&:hover": {
-            borderLeft: "3px #4E5668 solid",
+            borderLeft: "3px #88C0D0 solid",
         },
     },
     tocH1Item: {
@@ -136,6 +136,36 @@ const styles = (theme) => ({
         "&:hover": {
             borderLeft: "3px #88C0D0 solid",
         },
+    },
+    tocOnItemH2: {
+        paddingTop: "4px",
+        paddingBottom: "2px",
+        backgroundColor: "#dce4ee",
+        borderLeft: "3px #5c7fa9 solid",
+        "&:hover": {
+            borderLeft: "3px #5c7fa9 solid",
+        },
+        fontWeight: "bold !important",
+    },
+    tocOnItemH3: {
+        paddingTop: "4px",
+        paddingBottom: "2px",
+        backgroundColor: "#edf2e8",
+        borderLeft: "3px #96bb78 solid",
+        "&:hover": {
+            borderLeft: "3px #96bb78 solid",
+        },
+        fontWeight: "bold !important",
+    },
+    tocOnItemH4: {
+        paddingTop: "4px",
+        paddingBottom: "2px",
+        backgroundColor: "#ECEFF4",
+        borderLeft: "3px #d8bb7d solid",
+        "&:hover": {
+            borderLeft: "3px #d3a748 solid",
+        },
+        fontWeight: "bold !important",
     },
     tocH1: {
         color: "#2E3640 !important",
@@ -167,7 +197,9 @@ class ArticleComponent extends Component {
         this.state = {
             article: {},
             headings: [], // 用来存储目录结构
+            currentHeadingID: "",
         }
+        this.handleScroll = this.handleScroll.bind(this)
     }
 
     // 第一次挂载组件
@@ -188,6 +220,7 @@ class ArticleComponent extends Component {
         setTimeout(() => {
             this.updateTocHeading(['H1', 'H2', 'H3', 'H4']);
         }, 300);
+        window.addEventListener('scroll', this.handleScroll)
     }
 
     // 设置新文档后，组件更新
@@ -196,7 +229,7 @@ class ArticleComponent extends Component {
         if (!isEmptyObject(this.state.article)) {
             if (isEmptyObject(prevState.article)) {
                 updateArticle = true
-            } else if (this.state.article.ID != prevState.article.ID) {
+            } else if (this.state.article.ID !== prevState.article.ID) {
                 updateArticle = true
             }
             if (updateArticle) {
@@ -205,7 +238,9 @@ class ArticleComponent extends Component {
             }
         }
     }
-
+    componentWillUnmount() {
+        window.removeEventListener('scroll', this.handleScroll);
+    }
 
 
     handleTagClick = (event) => {
@@ -226,6 +261,7 @@ class ArticleComponent extends Component {
         if (document.querySelector(".markdown-content") === null) {
             return
         }
+        // 找出 headings，给标签添加 id 属性，每个 TocItem.headingID 与其对应
         let headingList = [];
         let headingCountMap = {
             "H1": 0,
@@ -243,22 +279,56 @@ class ArticleComponent extends Component {
                     type: item.nodeName,
                     headingID: headingID,
                     text: item.innerText,
+                    offset: 0,
                 });
             }
         });
 
         this.setState({
             headings: headingList,
+            currentHeadingID: (headingList.length !== 0 ? headingList[0].headingID : ""),
         });
+        // 2s 之后再设置偏移量
+        setTimeout(() => {
+            for (let item of headingList) {
+                item.offset = document.getElementById(item.headingID).offsetTop
+            }
+            this.setState({
+                headings: headingList,
+            })
+        }, 3000)
+    }
+
+    handleScroll = () => {
+        let scrollTop = document.documentElement.scrollTop + 200 // 获取当前页面的滚动距离
+        let currentHeadingID = this.state.headings.length !== 0 ? this.state.headings[0].headingID : ""
+
+        for (let item of this.state.headings) {
+            if (scrollTop >= item.offset) {
+                currentHeadingID = item.headingID;
+            } else {
+                break;
+            }
+        }
+
+
+        // 如果当前命中标题和前一个命中标题的文本不一样，说明当前页面处于其他标题下的内容，切换menuState
+        if (currentHeadingID !== this.state.currentHeadingID) {
+            this.setState({ currentHeadingID });
+        }; // 获取当前页面的滚动距离
     }
 
 
     scrollToHeading = (item) => {
         let anchorEl = document.getElementById(item.headingID);
         if (anchorEl) {
+            // bdoy 当前相对于「视口」的距离（向下滚动为负）
             const bodyRect = document.body.getBoundingClientRect().top;
+            // 获取标签对于「视口」的距离
             const elementRect = anchorEl.getBoundingClientRect().top;
+            // body 和 元素的实际距离，可以看做元素的 top
             const elPosition = elementRect - bodyRect;
+            // 由于 header 占用了一些位置
             const offPostion = elPosition - 60;
             window.scrollTo({
                 top: offPostion,
@@ -289,6 +359,7 @@ class ArticleComponent extends Component {
         const generateTOC = (itemList) => {
             let l = []
             for (let i = 0; i < itemList.length; i++) {
+                // 不同级别的 toc heading 样式：ListItem、Text
                 let className1 = ""
                 let className2 = ""
                 if (itemList[i].type === "H1") {
@@ -297,12 +368,21 @@ class ArticleComponent extends Component {
                 } else if (itemList[i].type === "H2") {
                     className1 = classes.tocItem
                     className2 = classes.tocH2
+                    if (itemList[i].headingID === this.state.currentHeadingID) {
+                        className1 = classes.tocOnItemH2
+                    }
                 } else if (itemList[i].type === "H3") {
                     className1 = classes.tocItem
                     className2 = classes.tocH3
+                    if (itemList[i].headingID === this.state.currentHeadingID) {
+                        className1 = classes.tocOnItemH3
+                    }
                 } else if (itemList[i].type === "H4") {
                     className1 = classes.tocItem
                     className2 = classes.tocH4
+                    if (itemList[i].headingID === this.state.currentHeadingID) {
+                        className1 = classes.tocOnItemH4
+                    }
                 }
                 l.push(
                     <ListItem button={true} onClick={(event) => {
@@ -315,10 +395,9 @@ class ArticleComponent extends Component {
                 )
             }
             return <List className={classes.tocList}> {l} </List>
-
         }
         return (
-            <React.Fragment>
+            <React.Fragment >
                 <Hidden mdDown>
                     <div className={classes.left}>
                         <div className={classes.leftWrapper}>
@@ -347,9 +426,9 @@ class ArticleComponent extends Component {
                     </div>
                 </Hidden>
 
-                <div className={classes.mid}>
-                    <div className={classes.midWrapper}>
-                        <div class="markdown-body" ref={(ref) => { this.scroll = ref }} >
+                <div className={classes.mid}  >
+                    <div className={classes.midWrapper} >
+                        <div class="markdown-body" ref={(ref) => { this.scroll = ref }}>
                             <Hilight content={this.state.article.HTML}></Hilight>
                         </div>
                     </div>

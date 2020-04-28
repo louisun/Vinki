@@ -1,13 +1,14 @@
-html, body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    background-color: #F2F4F8;
+html,
+body {
+  margin: 0;
+  padding: 0;
+  /* max-height: 100%; */
+  background-color: #f2f4f8;
 }
 
 body {
-    /* 解决侧边滑动引起界面抖动 */
-    overflow-y: scroll;
+  /* 解决侧边滑动引起界面抖动 */
+  overflow-y: scroll;
 }
 
 /*::-webkit-scrollbar {*/
@@ -17,5 +18,5 @@ body {
 /*}*/
 
 #root {
-    height: 100%;
+  height: 100%;
 }

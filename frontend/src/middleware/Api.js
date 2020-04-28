@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-export let baseURL = "api/v1";
+// export let baseURL = "http://localhost:6167/api/v1"
+export let baseURL = "/api/v1";
 
 export const getBaseURL = () => {
     return baseURL;

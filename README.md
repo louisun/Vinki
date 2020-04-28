@@ -24,4 +24,41 @@ Vinki 是一款面向个人的轻量级 wiki 服务，用于快速预览和查�
 
 ## Usage
 
-> TODO
+```bash
+./build.sh
+```
+
+### Docker
+
+**一、制作镜像**：
+
+```bash
+docker build -t renzo/vinki .
+```
+
+在 Docker 环境下，需要映射目录到容器中，推荐的方法是将所有仓库目录放到同一个目录下。比如下面的有 3 个仓库 `REPO_1~3`，统一放在宿主机 `HOST_ROOT_PATH` 路径下，即 `HOST_ROOT_PATH/REPO_1~3`，接着映射 `HOST_ROOT_PATH` 至容器中的目录，推荐为 `/vinki/repository`。因此在容器中，各仓库的路径为 `/vinki/repository/REPO_1~3`。
+
+**二、创建配置**：在宿主机的 `CONF_PATH` 目录下创建 `conf.yml` 文件， 编写内容如下：
+
+```yaml
+system:
+  debug: false
+  port: 6166
+
+repositories:
+  - root: "/vinki/repository/{REPO_1}"
+    exclude:
+      - "{YOUR_EXCLUE_DIR_1}"
+      - "{YOUR_EXCLUE_DIR_2}"
+  - root: "/vinki/repository/{REPO_2}"
+  - root: "/vinki/repository/{REPO_3}"
+```
+
+**三、启动容器**：
+
+```bash
+docker run -d --name vinki -p 6166:6166 \
+	-v {HOST_ROOT_PATH}:/vinki/repository \
+	-v {CONF_PATH}:/vinki/conf \
+	renzo/vinki
+```
