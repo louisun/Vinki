@@ -46,9 +46,9 @@ export default function App() {
                         <Route path="/login">
                             <Login />
                         </Route>
-                        <Route path="/tag/:tagID/article/:articleID">
-                            <Article />
-                        </Route>
+                        <Route path="/tag/:tagID/article/:articleID" render={(props) => (
+                            <Article key={`${props.match.params.tagID}-${props.match.params.articleID}`} />
+                        )} />
                         <Route path="/(|home|tags)">
                             <Tags />
                         </Route>

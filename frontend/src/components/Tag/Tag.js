@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 
 import { faMarkdown } from '@fortawesome/free-brands-svg-icons';
-import { faHashtag } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Box from '@material-ui/core/Box';
 import Chip from '@material-ui/core/Chip';
@@ -257,7 +256,11 @@ class TagsComponent extends Component {
         API.get(`/tags/${tag.ID}/articles`).then((response) => {
             if (type === "top") {
                 this.props.setCurrentTopTag(tag);
-                this.props.setSecondTags(response.data.SubTags);
+                if (response.data.SubTags) {
+                    this.props.setSecondTags(response.data.SubTags);
+                } else {
+                    this.props.setSecondTags([]);
+                }
                 this.props.setSubTags([]);
             } else {
                 if (this.state.flat === false) {
