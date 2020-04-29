@@ -9,8 +9,8 @@ import {
 
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
-import IconButton from '@material-ui/core/IconButton';
-import InputBase from '@material-ui/core/InputBase';
+// import IconButton from '@material-ui/core/IconButton';
+// import InputBase from '@material-ui/core/InputBase';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import Menu from '@material-ui/core/Menu';
@@ -22,11 +22,10 @@ import {
 } from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import AppleIcon from '@material-ui/icons/Apple';
 import ClassRoundedIcon from '@material-ui/icons/ClassRounded';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
-import MenuIcon from '@material-ui/icons/Menu';
-import SearchIcon from '@material-ui/icons/Search';
+// import MenuIcon from '@material-ui/icons/Menu';
+// import SearchIcon from '@material-ui/icons/Search';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 
 import {

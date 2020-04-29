@@ -3,18 +3,13 @@ package utils
 import (
 	"fmt"
 	"os"
-	"sync"
 
 	"github.com/sirupsen/logrus"
 )
 
-var once = sync.Once{}
-var DefaultLog *logrus.Logger
+var DefaultLog = NewLog(logrus.DebugLevel, "vinki.log")
 
 func Log() *logrus.Logger {
-	once.Do(func() {
-		DefaultLog = NewLog(logrus.DebugLevel, "vinki.log")
-	})
 	return DefaultLog
 }
 
