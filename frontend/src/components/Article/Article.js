@@ -12,14 +12,10 @@ import {
   faListUl,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import BottomNavigation from '@material-ui/core/BottomNavigation';
-import BottomNavigationAction from '@material-ui/core/BottomNavigationAction';
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Collapse from '@material-ui/core/Collapse';
 import Hidden from '@material-ui/core/Hidden';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
@@ -29,10 +25,6 @@ import {
   withTheme,
 } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
-import FavoriteIcon from '@material-ui/icons/Favorite';
-import LocationOnIcon from '@material-ui/icons/LocationOn';
-import MenuIcon from '@material-ui/icons/MenuOpen';
-import TocIcon from '@material-ui/icons/Toc';
 import Skeleton from '@material-ui/lab/Skeleton';
 
 import {
@@ -137,74 +129,63 @@ const styles = (theme) => ({
             outline: '1px solid slategrey',
         }
     },
-    tocItem: {
-        paddingTop: "4px",
-        paddingBottom: "2px",
-        borderLeft: "3px #F2F4F8 solid",
-        "&:hover": {
-            borderLeft: "3px #88C0D0 solid",
-        },
-    },
     tocH1Item: {
         paddingTop: "4px",
         paddingBottom: "2px",
-        backgroundColor: "#E9EAEE",
-        borderLeft: "3px #88C0D0 solid",
+        borderLeft: "4px #88C0D0 solid",
         "&:hover": {
-            borderLeft: "3px #88C0D0 solid",
+            borderLeft: "4px #88C0D0 solid",
         },
     },
-    tocOnItemH2: {
+    tocH2Item: {
         paddingTop: "4px",
         paddingBottom: "2px",
         backgroundColor: "#dce4ee",
-        borderLeft: "3px #5c7fa9 solid",
+        borderLeft: "4px #5c7fa9 solid",
         "&:hover": {
-            borderLeft: "3px #5c7fa9 solid",
+            borderLeft: "4px #4C698C solid",
         },
-        fontWeight: "bold !important",
     },
-    tocOnItemH3: {
+    tocH3Item: {
         paddingTop: "4px",
         paddingBottom: "2px",
-        backgroundColor: "#edf2e8",
-        borderLeft: "3px #96bb78 solid",
+        borderLeft: "4px #96bb78 solid",
         "&:hover": {
-            borderLeft: "3px #96bb78 solid",
+            borderLeft: "4px #7AA05B solid",
         },
-        fontWeight: "bold !important",
     },
-    tocOnItemH4: {
+    tocH4Item: {
         paddingTop: "4px",
         paddingBottom: "2px",
-        backgroundColor: "#ECEFF4",
-        borderLeft: "3px #d8bb7d solid",
+        borderLeft: "4px #d8bb7d solid",
         "&:hover": {
-            borderLeft: "3px #d3a748 solid",
+            borderLeft: "4px #d3a748 solid",
         },
-        fontWeight: "bold !important",
     },
     tocH1Text: {
+        fontFamily: "Inter",
         color: "#2E3640 !important",
-        fontSize: "1.1em",
+        fontSize: "1.2em",
     },
     tocH2Text: {
-        // textIndent: "1em",
-        color: "#2E3540 !important",
-        fontWeight: "bold !important",
+        fontFamily: "Inter",
+        color: "#364C65 !important",
         fontSize: "1.1em",
+        fontWeight: "500 !important",
     },
     tocH3Text: {
-        // textIndent: "2em",
+        fontFamily: "Inter",
         color: "#4E5668 !important",
-        fontSize: "1.1em",
+        fontSize: "1.0em",
+        fontWeight: "400 !important",
     },
     tocH4Text: {
         textIndent: "1em",
         color: "#4E5668 !important",
-        fontStyle: "italic",
+        fontFamily: "Inter",
+        fontSize: "0.9em",
+        fontWeight: "350 !important",
     },
-
     bottomBar: {
         position: "fixed",
         width: "100%",
@@ -222,6 +203,7 @@ const styles = (theme) => ({
         color: "#FFFFFF",
         bottom: "40px",
         height: "50vh",
+        paddingTop: "10px",
         paddingLeft: "10px",
     },
     // 对应 toc list
@@ -240,15 +222,6 @@ const styles = (theme) => ({
             outline: '1px solid slategrey',
         }
     },
-    // 对应 tocItem
-    tocItemBottom: {
-        paddingTop: "4px",
-        paddingBottom: "2px",
-        borderLeft: "3px #4E5668 solid",
-        "&:hover": {
-            borderLeft: "3px #88C0D0 solid",
-        },
-    },
     tocH1ItemBottom: {
         paddingTop: "4px",
         paddingBottom: "2px",
@@ -258,30 +231,30 @@ const styles = (theme) => ({
             borderLeft: "3px #88C0D0 solid",
         },
     },
-    tocOnItemH2Bottom: {
+    tocH2ItemBottom: {
         paddingTop: "4px",
         paddingBottom: "2px",
-        backgroundColor: "#012E46",
+        backgroundColor: "#dce4ee",
         borderLeft: "3px #5c7fa9 solid",
         "&:hover": {
             borderLeft: "3px #5c7fa9 solid",
         },
         fontWeight: "bold !important",
     },
-    tocOnItemH3Bottom: {
+    tocH3ItemBottom: {
         paddingTop: "4px",
         paddingBottom: "2px",
-        backgroundColor: "#012E46",
+        // backgroundColor: "#012E46",
         borderLeft: "3px #96bb78 solid",
         "&:hover": {
             borderLeft: "3px #96bb78 solid",
         },
         fontWeight: "bold !important",
     },
-    tocOnItemH4Bottom: {
+    tocH4ItemBottom: {
         paddingTop: "4px",
         paddingBottom: "2px",
-        backgroundColor: "#012E46",
+        // backgroundColor: "#012E46",
         borderLeft: "3px #d8bb7d solid",
         "&:hover": {
             borderLeft: "3px #d3a748 solid",
@@ -292,22 +265,26 @@ const styles = (theme) => ({
         color: "#FFFFFF !important",
         fontWeight: "bold !important",
         fontSize: "1.1em",
+        fontFamily: "Inter"
     },
     tocH2TextBottom: {
         // textIndent: "1em",
-        color: "#FFFFFF !important",
+        color: "#364C65 !important",
         fontWeight: "bold !important",
         fontSize: "1.1em",
+        fontFamily: "Inter"
     },
     tocH3TextBottom: {
         // textIndent: "2em",
         color: "#FFFFFF !important",
         fontSize: "1.1em",
+        fontFamily: "Inter"
     },
     tocH4TextBottom: {
         textIndent: "1em",
         color: "#FFFFFF !important",
         fontStyle: "italic",
+        fontFamily: "Inter"
     },
 });
 
@@ -318,10 +295,9 @@ class ArticleComponent extends Component {
         this.state = {
             article: {},
             headings: [], // 用来存储目录结构
-            currentHeadingID: "",
             tocMenu: false,
         }
-        this.handleScroll = this.handleScroll.bind(this)
+        this.tocTimer = null
     }
 
     // 第一次挂载组件
@@ -339,8 +315,8 @@ class ArticleComponent extends Component {
                 this.props.setArticleList(response.data.ArticleInfos)
             })
         }
-        this.updateTocHeading(['H1', 'H2', 'H3', 'H4']);
-        window.addEventListener('scroll', this.handleScroll)
+
+        this.tocTimer = setTimeout(this.updateTocHeading.bind(this), 300)
     }
 
     // 设置新文档后，组件更新
@@ -360,7 +336,7 @@ class ArticleComponent extends Component {
     // }
 
     componentWillUnmount() {
-        window.removeEventListener('scroll', this.handleScroll);
+        clearTimeout(this.tocTimer)
     }
 
 
@@ -369,24 +345,16 @@ class ArticleComponent extends Component {
     }
 
     handleArticleClick = (event, articleID) => {
-        // 设置 article，componentDidUpdate 处更新目录
-        // API.get(`/articles/${articleID}`).then(response => {
-        //     this.setState({
-        //         article: response.data,
-        //         headings: [],
-        //         currentHeadingID: "",
-        //     })
-        // })
         this.props.history.push(`/tag/${this.props.match.params.tagID}/article/${articleID}`)
-        // window.scrollTo(0, 0)
     }
 
     handleTocMenuClick = (event) => {
         this.setState({ tocMenu: !this.state.tocMenu })
     }
 
-    updateTocHeading = (headings) => {
+    updateTocHeading = () => {
         // 找出 headings，给标签添加 id 属性，每个 TocItem.headingID 与其对应
+        let headings = ['H1', 'H2', 'H3', 'H4']
         let headingList = [];
         let headingCountMap = {
             "H1": 0,
@@ -397,8 +365,6 @@ class ArticleComponent extends Component {
         let headingID = ""
         setTimeout(() => {
             if (document.querySelector(".markdown-content") === null) {
-                // 页面还没加载，继续等
-                this.updateTocHeading(headings)
                 return
             }
             document.querySelector(".markdown-content").childNodes.forEach((item) => {
@@ -410,53 +376,50 @@ class ArticleComponent extends Component {
                         type: item.nodeName,
                         headingID: headingID,
                         text: item.innerText,
-                        offset: 0,
                     });
                 }
             });
             this.setState({
                 headings: headingList,
-                currentHeadingID: (headingList.length !== 0 ? headingList[0].headingID : ""),
             });
         }, 100)
-        this.updateTocOffset()
     }
 
-    updateTocOffset = () => {
-        // 过一会再设置偏移量
-        setTimeout(() => {
-            let headingList = this.state.headings
-            for (let item of headingList) {
-                let header = document.getElementById(item.headingID)
-                if (header == null) {
-                    // heading 还没渲染
-                    return
-                } else {
-                    item.offset = header.offsetTop
-                }
-            }
-            this.setState({
-                headings: headingList,
-            })
-        }, 1000)
-    }
+    // updateTocOffset = () => {
+    //     // 过一会再设置偏移量
+    //     setTimeout(() => {
+    //         let headingList = this.state.headings
+    //         for (let item of headingList) {
+    //             let header = document.getElementById(item.headingID)
+    //             if (header == null) {
+    //                 // heading 还没渲染
+    //                 return
+    //             } else {
+    //                 item.offset = header.offsetTop
+    //             }
+    //         }
+    //         this.setState({
+    //             headings: headingList,
+    //         })
+    //     }, 1000)
+    // }
 
-    handleScroll = () => {
-        let scrollTop = document.documentElement.scrollTop + 300 // 获取当前页面的滚动距离
-        let currentHeadingID = this.state.headings.length !== 0 ? this.state.headings[0].headingID : ""
+    // handleScroll = () => {
+    //     let scrollTop = document.documentElement.scrollTop + 300 // 获取当前页面的滚动距离
+    //     let currentHeadingID = this.state.headings.length !== 0 ? this.state.headings[0].headingID : ""
 
-        for (let item of this.state.headings) {
-            if (scrollTop >= item.offset) {
-                currentHeadingID = item.headingID;
-            } else {
-                break;
-            }
-        }
-        if (currentHeadingID !== this.state.currentHeadingID) {
-            this.setState({ currentHeadingID });
-        };
+    //     for (let item of this.state.headings) {
+    //         if (scrollTop >= item.offset) {
+    //             currentHeadingID = item.headingID;
+    //         } else {
+    //             break;
+    //         }
+    //     }
+    //     if (currentHeadingID !== this.state.currentHeadingID) {
+    //         this.setState({ currentHeadingID });
+    //     };
 
-    }
+    // }
 
 
     scrollToHeading = (item, hideToc) => {
@@ -486,7 +449,7 @@ class ArticleComponent extends Component {
         const generateArticles = (articleList) => {
             let l = []
             for (let i = 0; i < articleList.length; i++) {
-                if (articleList[i].ID == this.props.match.params.articleID) {
+                if (articleList[i].ID + "" === this.props.match.params.articleID) {
                     l.push(
                         <ListItem button={true} style={{ backgroundColor: "#F5F5F5" }}
                             onClick={(event) => {
@@ -516,7 +479,7 @@ class ArticleComponent extends Component {
             }
             return <List className={classes.articleList}> {l} </List>
         }
-        const generateTOC = (itemList, isBottom) => {
+        const generateTOC = (itemList) => {
             let l = []
             for (let i = 0; i < itemList.length; i++) {
                 // 不同级别的 toc heading 样式：ListItem、Text
@@ -524,24 +487,16 @@ class ArticleComponent extends Component {
                 let textClass = ""
                 if (itemList[i].type === "H1") {
                     itemClass = classes.tocH1Item
+                    textClass = classes.tocH1Text
                 } else if (itemList[i].type === "H2") {
-                    itemClass = classes.tocItem
+                    itemClass = classes.tocH2Item
                     textClass = classes.tocH2Text
-                    if (itemList[i].headingID === this.state.currentHeadingID) {
-                        itemClass = classes.tocOnItemH2
-                    }
                 } else if (itemList[i].type === "H3") {
-                    itemClass = classes.tocItem
-                    textClass = classes.tocH2Text
-                    if (itemList[i].headingID === this.state.currentHeadingID) {
-                        itemClass = classes.tocOnItemH3
-                    }
+                    itemClass = classes.tocH3Item
+                    textClass = classes.tocH3Text
                 } else if (itemList[i].type === "H4") {
-                    itemClass = classes.tocItem
+                    itemClass = classes.tocH4Item
                     textClass = classes.tocH4Text
-                    if (itemList[i].headingID === this.state.currentHeadingID) {
-                        itemClass = classes.tocOnItemH4
-                    }
                 }
                 l.push(
                     <ListItem button={true} onClick={(event) => {
@@ -563,23 +518,14 @@ class ArticleComponent extends Component {
                     itemClass = classes.tocH1ItemBottom
                     textClass = classes.tocH1TextBottom
                 } else if (itemList[i].type === "H2") {
-                    itemClass = classes.tocItemBottom
+                    itemClass = classes.tocH2ItemBottom
                     textClass = classes.tocH2TextBottom
-                    if (itemList[i].headingID === this.state.currentHeadingID) {
-                        itemClass = classes.tocOnItemH2Bottom
-                    }
                 } else if (itemList[i].type === "H3") {
-                    itemClass = classes.tocItemBottom
-                    textClass = classes.tocH2TextBottom
-                    if (itemList[i].headingID === this.state.currentHeadingID) {
-                        itemClass = classes.tocOnItemH3Bottom
-                    }
+                    itemClass = classes.tocH3ItemBottom
+                    textClass = classes.tocH3TextBottom
                 } else if (itemList[i].type === "H4") {
-                    itemClass = classes.tocItemBottom
+                    itemClass = classes.tocH4ItemBottom
                     textClass = classes.tocH4TextBottom
-                    if (itemList[i].headingID === this.state.currentHeadingID) {
-                        itemClass = classes.tocOnItemH4Bottom
-                    }
                 }
                 l.push(
                     <ListItem button={true} onClick={(event) => {
@@ -638,7 +584,7 @@ class ArticleComponent extends Component {
                     </div>
                     <Hidden smUp>
                         <div>
-                            <div className={classes.toc, classes.tocBottom} style={{ display: this.state.tocMenu ? "block" : "none" }}>
+                            <div className={classes.tocBottom} style={{ display: this.state.tocMenu ? "block" : "none" }}>
                                 {isEmptyObject(this.state.headings) ? (
                                     <div style={{ width: "200px" }}>
                                         <Skeleton animation="wave" />
@@ -649,14 +595,6 @@ class ArticleComponent extends Component {
                                 ) : generateTOCBottom(this.state.headings)
                                 }
                             </div>
-                            {/* <div className={classes.bottomBar}>
-                                <BottomNavigation
-                                    showLabels
-                                    className={classes.menu}
-                                >
-                                    <BottomNavigationAction label="TOC" icon={<MenuIcon onClick={this.handleTocMenuClick} />} style={{ color: "#86C1D3", fontWeight: "bold" }} />
-                                </BottomNavigation>
-                            </div> */}
                             <div className={classes.bottomBar}>
                                 <Typography variant="h6" style={{ color: "#81A1C1", fontWeight: "bold", textAlign: "center", paddingTop: "5px" }} onClick={this.handleTocMenuClick}  >
                                     <FontAwesomeIcon icon={faListUl} style={{ fontSize: "1.1em", marginRight: "0.4em" }} />
