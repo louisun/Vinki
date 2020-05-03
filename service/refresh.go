@@ -27,7 +27,7 @@ func RefreshGlobal() serializer.Response {
 	for _, r := range conf.GlobalConfig.Repositories {
 		if utils.ExistsDir(r.Root) {
 			var repoPath = r.Root
-			var tagPath2ID = make(map[string]uint64)
+			var tagPath2Name = make(map[string]string)
 			if strings.HasSuffix(repoPath, "/") {
 				repoPath = strings.TrimSuffix(repoPath, "/")
 			}
@@ -45,17 +45,20 @@ func RefreshGlobal() serializer.Response {
 			tags := make([]*models.Tag, 0, len(tagPaths))
 			for _, tp := range tagPaths {
 				parentPath := filepath.Dir(tp)
+				tagName := strings.Join(strings.Split(strings.TrimPrefix(tp, repo.Path+"/"), "/"), "--")
 				if parentPath == repoPath {
+					// 一级目录
 					tags = append(tags, &models.Tag{
-						Path:   tp,
-						RepoID: repo.ID,
-						Name:   filepath.Base(tp),
+						Path:     tp,
+						RepoName: repo.Name,
+						Name:     tagName,
 					})
 				} else {
+					// 子目录
 					tags = append(tags, &models.Tag{
-						Path:   tp,
-						RepoID: repo.ID,
-						Name:   filepath.Base(tp),
+						Path:     tp,
+						RepoName: repo.Name,
+						Name:     tagName,
 						ParentPath: sql.NullString{
 							String: parentPath,
 							Valid:  true,
@@ -69,7 +72,7 @@ func RefreshGlobal() serializer.Response {
 				return serializer.DBErrorResponse("", err)
 			}
 			for _, tag := range tags {
-				tagPath2ID[tag.Path] = tag.ID
+				tagPath2Name[tag.Path] = tag.Name
 			}
 			// 4. 创建 Articles
 			for tagPath, fileInfos := range t2f {
@@ -82,10 +85,11 @@ func RefreshGlobal() serializer.Response {
 						return serializer.InternalErrorResponse("", err)
 					}
 					articleList = append(articleList, &models.Article{
-						Title: fileInfo.BriefName,
-						Path:  fileInfo.Path,
-						TagID: tagPath2ID[tagPath],
-						HTML:  string(htmlBytes),
+						RepoName: repo.Name,
+						TagName:  tagPath2Name[tagPath],
+						Title:    fileInfo.BriefName,
+						Path:     fileInfo.Path,
+						HTML:     string(htmlBytes),
 					})
 				}
 				err = addArticles(articleList)

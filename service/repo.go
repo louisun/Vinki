@@ -7,7 +7,7 @@ import (
 )
 
 func GetRepoInfos() serializer.Response {
-	repos, err := models.GetRepoInfos()
+	repos, err := models.GetRepoNames()
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return serializer.ParamErrorResponse("当前没有仓库可获取", err)
@@ -23,8 +23,8 @@ func addRepo(repo *models.Repo) error {
 	return err
 }
 
-func deleteRepoByID(repoID uint64) error {
-	err := models.DeleteRepoByID(repoID)
+func deleteRepo(repoName string) error {
+	err := models.DeleteRepo(repoName)
 	return err
 }
 

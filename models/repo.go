@@ -10,39 +10,23 @@ func (Repo) TableName() string {
 	return "repo"
 }
 
-type RepoInfo struct {
-	ID   uint64
-	Name string
+func AddRepo(repo *Repo) error {
+	result := DB.Create(repo)
+	return result.Error
 }
 
-func GetRepos() ([]Repo, error) {
-	l := make([]Repo, 0, 10)
-	result := DB.Model(&Repo{}).Find(&l)
+func GetRepoNames() ([]string, error) {
+	l := make([]string, 0, 10)
+	result := DB.Model(&Repo{}).Pluck("name", &l)
 	return l, result.Error
 }
 
-func GetRepoInfos() ([]RepoInfo, error) {
-	l := make([]RepoInfo, 0, 10)
-	result := DB.Model(&Repo{}).Select("id, name").Scan(&l)
-	return l, result.Error
-}
-
-func GetRepoByID(repoID uint64) (repo Repo, err error) {
-	result := DB.First(&repo, repoID)
-	return repo, result.Error
-}
-
-func DeleteRepoByID(repoID uint64) error {
-	result := DB.Where("id = ?", repoID).Delete(&Repo{})
+func DeleteRepo(repoName string) error {
+	result := DB.Where("name = ?", repoName).Delete(&Repo{})
 	return result.Error
 }
 
 func TruncateRepo() (err error) {
 	result := DB.Delete(&Repo{})
-	return result.Error
-}
-
-func AddRepo(repo *Repo) error {
-	result := DB.Create(repo)
 	return result.Error
 }

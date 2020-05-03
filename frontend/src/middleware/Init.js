@@ -41,12 +41,12 @@ var config = {
     // 1. 仓库信息
     repo: {
         repos: [],           // 仓库列表
-        currentRepo: {}      // 当前仓库信息
+        currentRepo: ""      // 当前仓库信息
     },
     // 2. 标签相关信息
     tag: {
-        currentTag: {},      // 当前标签信息
-        currentTopTag: {},   // 当前一级标签
+        currentTag: "",      // 当前标签信息
+        currentTopTag: "",   // 当前一级标签
         topTags: [],         // 一级标签列表
         secondTags: [],      // 二级标签列表
         subTags: [],         // 子标签

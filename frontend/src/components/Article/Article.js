@@ -29,15 +29,20 @@ import Skeleton from '@material-ui/lab/Skeleton';
 
 import {
   setArticleList,
+  setCurrentRepo,
   setCurrentTag,
 } from '../../actions';
 import cardImage from '../../assets/img/card.png';
 import API from '../../middleware/Api';
-import { isEmptyObject } from '../../utils';
+import {
+  isEmptyObject,
+  lastOfArray,
+} from '../../utils';
 import Hilight from './Highlight';
 
 const mapStateToProps = state => {
     return {
+        currentRepo: state.repo.currentRepo,
         currentTag: state.tag.currentTag,
         articleList: state.tag.articleList,
     }
@@ -45,6 +50,9 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
+        setCurrentRepo: currentRepo => {
+            dispatch(setCurrentRepo(currentRepo))
+        },
         setCurrentTag: currentTag => {
             dispatch(setCurrentTag(currentTag))
         },
@@ -75,6 +83,7 @@ const styles = (theme) => ({
         padding: "20px 60px 20px 60px",
         backgroundColor: "#FFFFFF",
         boxShadow: "0 4px 6px rgba(184,194,215,0.25), 0 5px 7px rgba(184,194,215,0.1)",
+        // boxShadow: "0 12px 15px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19)",
         borderRadius: "8px",
         marginBottom: "50px",
     },
@@ -302,16 +311,29 @@ class ArticleComponent extends Component {
 
     // 第一次挂载组件
     componentDidMount() {
-        API.get(`/articles/${this.props.match.params.articleID}`).then(response => {
-            this.setState({ article: response.data })
-            document.title = this.state.article.Title
+        API.get("/article", {
+            params: {
+                repoName: this.props.match.params.repoName,
+                tagName: this.props.match.params.tagName,
+                articleName: this.props.match.params.articleName,
+            }
+        }).then(response => {
+            if (response.data) {
+                this.setState({ article: response.data })
+                document.title = this.state.article.Title
+            }
         })
-        if (isEmptyObject(this.props.currentTag)) {
-            API.get(`/tags/${this.props.match.params.tagID}/articles`).then(response => {
-                this.props.setCurrentTag({
-                    ID: response.data.ID,
-                    Name: response.data.Name,
-                })
+        if (this.props.currentRepo === "" || this.props.currentRepo !== this.props.match.params.repoName) {
+            this.props.setCurrentRepo(this.props.match.params.repoName)
+        }
+        if (this.props.currentTag === "") {
+            API.get("/tag", {
+                params: {
+                    repoName: this.props.match.params.repoName,
+                    tagName: this.props.match.params.tagName,
+                }
+            }).then(response => {
+                this.props.setCurrentTag(response.data.Name)
                 this.props.setArticleList(response.data.ArticleInfos)
             })
         }
@@ -344,8 +366,8 @@ class ArticleComponent extends Component {
         this.props.history.push("/tags")
     }
 
-    handleArticleClick = (event, articleID) => {
-        this.props.history.push(`/tag/${this.props.match.params.tagID}/article/${articleID}`)
+    handleArticleClick = (event, articleName) => {
+        this.props.history.push(`/article/${this.props.match.params.repoName}/${this.props.match.params.tagName}/${articleName}`)
     }
 
     handleTocMenuClick = (event) => {
@@ -365,6 +387,7 @@ class ArticleComponent extends Component {
         let headingID = ""
         setTimeout(() => {
             if (document.querySelector(".markdown-content") === null) {
+                // TDOO 重试
                 return
             }
             document.querySelector(".markdown-content").childNodes.forEach((item) => {
@@ -382,7 +405,7 @@ class ArticleComponent extends Component {
             this.setState({
                 headings: headingList,
             });
-        }, 100)
+        }, 200)
     }
 
     // updateTocOffset = () => {
@@ -449,14 +472,14 @@ class ArticleComponent extends Component {
         const generateArticles = (articleList) => {
             let l = []
             for (let i = 0; i < articleList.length; i++) {
-                if (articleList[i].ID + "" === this.props.match.params.articleID) {
+                if (articleList[i] === this.props.match.params.articleName) {
                     l.push(
                         <ListItem button={true} style={{ backgroundColor: "#F5F5F5" }}
                             onClick={(event) => {
-                                this.handleArticleClick(event, articleList[i].ID)
+                                this.handleArticleClick(event, articleList[i])
                             }}>
                             <ListItemText
-                                primary={articleList[i].Title}
+                                primary={articleList[i]}
                                 style={{ color: "#4C566A", textShadow: "0 0 .6px #2E3440, 0 0 .6px #2E3440", }}
                                 primaryTypographyProps={{ variant: "subtitle1" }}
                             />
@@ -466,10 +489,10 @@ class ArticleComponent extends Component {
                 } else {
                     l.push(
                         <ListItem button={true} onClick={(event) => {
-                            this.handleArticleClick(event, articleList[i].ID)
+                            this.handleArticleClick(event, articleList[i])
                         }}>
                             <ListItemText
-                                primary={articleList[i].Title}
+                                primary={articleList[i]}
                                 style={{ color: "#4C566A", textShadow: "0 0 .9px #E5E9F1, 0 0 .9px #E5E9F1", }}
                                 primaryTypographyProps={{ variant: "subtitle1" }}
                             />
@@ -553,7 +576,7 @@ class ArticleComponent extends Component {
                                     />
                                     <CardContent>
                                         <Typography gutterBottom variant="h5" component="h2">
-                                            {this.props.currentTag.Name}
+                                            {lastOfArray(this.props.currentTag.split("--"))}
                                         </Typography>
                                         <Typography variant="body2" color="textSecondary" component="p">
                                             <FontAwesomeIcon icon={faHashtag} style={{ fontSize: "0.9rem", marginRight: "0.4em" }} />

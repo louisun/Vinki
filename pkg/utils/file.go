@@ -56,7 +56,8 @@ func RenderMarkdown(mdPath string) ([]byte, error) {
 	mdStr := string(md)
 	spaceHandler := space.NewMarkdownHandler(&mdStr)
 	mdBytes := []byte(spaceHandler.HandleText())
-	extensions := parser.CommonExtensions
+	// CommonExtensions 排除 NoIntraEmphasis（否则会导致 * 后面跟部分字符无法解析）
+	extensions := parser.CommonExtensions ^ parser.NoIntraEmphasis
 	p := parser.NewWithExtensions(extensions)
 	html := markdown.ToHTML(mdBytes, p, nil)
 	return html, nil

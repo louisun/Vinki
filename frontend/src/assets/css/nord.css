@@ -16,15 +16,19 @@ highlight.js
   http://highlightjs.readthedocs.io/en/latest/style-guide.html
   http://highlightjs.readthedocs.io/en/latest/css-classes-reference.html
 */
-.hljs {
+
+pre {
   display: block;
   overflow-x: auto;
   padding: 0.5em;
   background: #2e3440;
 }
 
-.hljs,
-.hljs-subst {
+pre>code {
+  color: #D8DFE9;
+}
+
+.hljs, .hljs-subst {
   color: #d8dee9;
 }
 
@@ -57,8 +61,7 @@ highlight.js
   background-color: rgba(191, 97, 106, 0.5);
 }
 
-.hljs-built_in,
-.hljs-type {
+.hljs-built_in, .hljs-type {
   color: #8fbcbb;
 }
 
@@ -70,13 +73,11 @@ highlight.js
   color: #88c0d0;
 }
 
-.hljs-function > .hljs-title {
+.hljs-function>.hljs-title {
   color: #88c0d0;
 }
 
-.hljs-keyword,
-.hljs-literal,
-.hljs-symbol {
+.hljs-keyword, .hljs-literal, .hljs-symbol {
   color: #81a1c1;
 }
 
@@ -136,8 +137,7 @@ highlight.js
   color: #8fbcbb;
 }
 
-.hljs-meta,
-.hljs-meta-keyword {
+.hljs-meta, .hljs-meta-keyword {
   color: #5e81ac;
 }
 
@@ -205,7 +205,7 @@ highlight.js
   color: #d08770;
 }
 
-.aspectj > .hljs-title {
+.aspectj>.hljs-title {
   color: #88c0d0;
 }
 
