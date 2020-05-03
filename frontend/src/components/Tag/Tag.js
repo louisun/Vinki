@@ -29,7 +29,7 @@ import {
   setTopTags,
 } from '../../actions';
 import API from '../../middleware/Api';
-import { isEmptyObject } from '../../utils';
+import { lastOfArray } from '../../utils';
 
 const mapStateToProps = (state) => {
     return {
@@ -188,27 +188,27 @@ class TagsComponent extends Component {
     }
 
     loadTopTags() {
-        API.get(`/repos/${this.props.currentRepo.ID}/tags`).then((response) => {
+        API.get("/tags", { params: { repoName: this.props.currentRepo } }).then((response) => {
             if (response.data !== null) {
                 this.props.setTopTags(response.data);
                 this.props.setSecondTags([]);
                 this.props.setSubTags([]);
-                this.props.setCurrentTag({});
-                this.props.setCurrentTopTag({});
+                this.props.setCurrentTag("");
+                this.props.setCurrentTopTag("");
                 this.props.setArticleList([]);
             }
         });
     }
     componentDidMount() {
         document.title = "Vinki"
-        if (!isEmptyObject(this.props.currentRepo) && this.props.topTags.length === 0) {
+        if (this.props.currentRepo !== "" && this.props.topTags.length === 0) {
             this.loadTopTags();
         }
     }
     componentDidUpdate(prevProps, prevState) {
         // 1. 当一级标签为空时，刷新内容
         if (
-            !isEmptyObject(this.props.currentRepo) &&
+            this.props.currentRepo !== "" &&
             this.props.topTags.length === 0
         ) {
             this.loadTopTags();
@@ -216,10 +216,10 @@ class TagsComponent extends Component {
         }
         // 2. 当仓库变更时，刷新内容
         let refreshTopTags = false;
-        if (!isEmptyObject(this.props.currentRepo)) {
+        if (this.props.currentRepo !== "") {
             if (
-                isEmptyObject(prevProps.currentRepo) ||
-                this.props.currentRepo.ID !== prevProps.currentRepo.ID
+                prevProps.currentRepo === "" ||
+                this.props.currentRepo !== prevProps.currentRepo
             ) {
                 refreshTopTags = true;
             }
@@ -233,7 +233,13 @@ class TagsComponent extends Component {
         // setState({...state, [event.target.name]: event.target.checked});
         this.setState({ flat: event.target.checked });
         if (event.target.checked === true) {
-            API.get(`/tags/${this.props.currentTopTag.ID}/articles?flat=true`).then(
+            API.get("/tag", {
+                params: {
+                    flat: true,
+                    repoName: this.props.currentRepo,
+                    tagName: this.props.currentTopTag
+                }
+            }).then(
                 (response) => {
                     this.props.setSecondTags(response.data.SubTags);
                     this.props.setSubTags([]);
@@ -241,7 +247,13 @@ class TagsComponent extends Component {
                 }
             );
         } else {
-            API.get(`/tags/${this.props.currentTopTag.ID}/articles`).then(
+            API.get("/tag", {
+                params: {
+                    flat: false,
+                    repoName: this.props.currentRepo,
+                    tagName: this.props.currentTopTag
+                }
+            }).then(
                 (response) => {
                     this.props.setSecondTags(response.data.SubTags);
                     this.props.setArticleList(response.data.ArticleInfos);
@@ -253,8 +265,19 @@ class TagsComponent extends Component {
     handleTagClick = (event, tag, type) => {
         this.setState((state) => ({ flat: false }));
         this.props.setCurrentTag(tag);
-        API.get(`/tags/${tag.ID}/articles`).then((response) => {
+        API.get(`/tag`, {
+            params: {
+                flat: false,
+                repoName: this.props.currentRepo,
+                tagName: tag,
+            }
+        }).then((response) => {
+            if (response.data == null) {
+                // TODO error message
+                return
+            }
             if (type === "top") {
+                console.log(response.data)
                 this.props.setCurrentTopTag(tag);
                 if (response.data.SubTags) {
                     this.props.setSecondTags(response.data.SubTags);
@@ -271,11 +294,8 @@ class TagsComponent extends Component {
         });
     };
 
-    handleArticleClick = (event, id) => {
-        // API.get(`/articles/${id}`).then(response => {
-        //     this.props.setArticle(response.data)
-        // })
-        this.props.history.push(`/tag/${this.props.currentTag.ID}/article/${id}`);
+    handleArticleClick = (event, articleName) => {
+        this.props.history.push(`/article/${this.props.currentRepo}/${this.props.currentTag}/${articleName}`);
     };
 
     render() {
@@ -285,10 +305,9 @@ class TagsComponent extends Component {
             let l = [];
             for (let i = 0; i < tagList.length; i++) {
                 let className = "";
-
-                if (tagList[i].ID === this.props.currentTopTag.ID) {
+                if (tagList[i] === this.props.currentTopTag) {
                     className = classes.topChipSelected;
-                } else if (tagList[i].ID === this.props.currentTag.ID) {
+                } else if (tagList[i] === this.props.currentTag) {
                     className = classes.chipSelected;
                 } else if (type === "top") {
                     className = classes.topChip;
@@ -298,7 +317,7 @@ class TagsComponent extends Component {
                 l.push(
                     <Chip
                         key={i}
-                        label={tagList[i].Name}
+                        label={lastOfArray(tagList[i].split("--"))}
                         className={className}
                         clickable={true}
                         onClick={(event) => this.handleTagClick(event, tagList[i], type)}
@@ -315,7 +334,7 @@ class TagsComponent extends Component {
                     <ListItem
                         button={true}
                         onClick={(event) => {
-                            this.handleArticleClick(event, articleList[i].ID);
+                            this.handleArticleClick(event, articleList[i]);
                         }}
                     >
                         <ListItemIcon>
@@ -325,7 +344,7 @@ class TagsComponent extends Component {
                             />
                         </ListItemIcon>
                         <ListItemText
-                            primary={articleList[i].Title}
+                            primary={articleList[i]}
                             style={{
                                 color: "#4C566A",
                                 textShadow: "0 0 .9px #E5E9F1, 0 0 .9px #E5E9F1",

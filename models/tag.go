@@ -9,114 +9,100 @@ import (
 // Tag 标签
 type Tag struct {
 	ID         uint64         `gorm:"primary_key"`
-	Path       string         `gorm:"type:varchar(200);unique_index:idx_repo_tag;index:path;not null"` // Tag 目录路径
-	RepoID     uint64         `gorm:"unique_index:idx_repo_tag"`                                       // 所属仓库
-	Name       string         `gorm:"type:varchar(50);not null"`                                       // 标签名称
-	ParentPath sql.NullString `gorm:"type:varchar(200);index:parent_path;default: null"`               // 父标签路径
-	Repo       Repo           `gorm:"save_associations:false"`                                         // 关联的 Repo
+	Path       string         `gorm:"type:varchar(200);index:path;not null"`             // Tag 目录路径
+	Name       string         `gorm:"type:varchar(200);not null"`                        // 标签名称（多级拼合）
+	ParentPath sql.NullString `gorm:"type:varchar(200);index:parent_path;default: null"` // 父标签路径
+	RepoName   string
+	Repo       Repo `gorm:"foreignkey:RepoName;association_foreignkey:Name;PRELOAD:false;save_associations:false"`
 }
 
 func (Tag) TableName() string {
 	return "tag"
 }
 
-type TagInfo struct {
-	ID   uint64 // 标签 ID
-	Name string // 标签名
-}
-
 // TagView 标签视图
 type TagView struct {
-	ID      uint64
 	Name    string
-	SubTags []TagInfo // 子标签列表
+	SubTags []string // 子标签列表
 }
 
 // GetTagsByRepo 根据 repo 名获取所有 Tag 信息
-func GetTagsByRepo(repoID uint64) ([]Tag, error) {
+func GetTagsByRepoName(repoName string) ([]Tag, error) {
 	var tags []Tag
-	result := DB.Where("repo_id = ?", repoID).Order("name").Find(&tags)
+	result := DB.Where("repo_name = ?", repoName).Order("repoName").Find(&tags)
 	return tags, result.Error
 }
 
 // GetRootTagsByRepo 根据 repo 名获取所有一级标签的 Tag 信息
-func GetRootTagsByRepo(repoID uint64) ([]Tag, error) {
+func GetRootTagsByRepo(repoName string) ([]Tag, error) {
 	var tags []Tag
-	result := DB.Where("repo_id = ? and parent_path is null", repoID).Order("name").Find(&tags)
+	result := DB.Where("repo_name = ? and parent_path is null", repoName).Order("name").Find(&tags)
 	return tags, result.Error
 }
 
-// GetRootTagInfosByRepo 根据 repo 名获取所有一级标签的 TagInfo 信息
-func GetRootTagInfosByRepo(repoID uint64) ([]TagInfo, error) {
-	var tags []TagInfo
-	result := DB.Model(&Tag{}).Select("id, name").
-		Where("repo_id = ? and parent_path is null", repoID).Order("name").Scan(&tags)
+// GetTopTagInfosByRepo 根据 repo 名获取所有一级标签的名称
+func GetTopTagInfosByRepo(repoName string) ([]string, error) {
+	tags := make([]string, 0)
+	result := DB.Model(&Tag{}).Where("repo_name = ? and parent_path is null", repoName).
+		Order("name").Pluck("name", &tags)
 	return tags, result.Error
 }
 
-// GetTagViewByID 通过 TagID 获取 TagView
-func GetTagViewByID(tagID uint64) (TagView, error) {
+// GetTagView 通过 repoName 和 tagName 获取 TagView
+func GetTagView(repoName string, tagName string) (TagView, error) {
 	var tagView TagView
 	var tag Tag
 	// 本标签信息
-	result := DB.Where("id = ?", tagID).Select("id, name, path").Find(&tag)
+	result := DB.Where("repo_name = ? and name = ?", repoName, tagName).Select("name, path").Find(&tag)
 	if result.Error != nil {
 		return tagView, result.Error
 	}
 	// 一级子标签列表
-	var subTags []TagInfo
-	result = DB.Model(&Tag{}).Where("parent_path = ?", tag.Path).Select("id, name").Scan(&subTags)
+	subTags := make([]string, 0)
+	result = DB.Model(&Tag{}).Where("parent_path = ?", tag.Path).Pluck("name", &subTags)
 	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
 		return tagView, result.Error
 	}
-	tagView.ID = tag.ID
 	tagView.Name = tag.Name
 	tagView.SubTags = subTags
 	return tagView, nil
 }
 
-// GetFlatTagViewByID 通过 TagID 获取平铺的 TagView
-func GetFlatTagViewByID(tagID uint64) (TagView, error) {
+// GetFlatTagView 通过 TagID 获取平铺的 TagView
+func GetFlatTagView(repoName string, tagName string) (TagView, error) {
 	var tag Tag
-	var list []TagInfo
+	var list []string
 	var tagView TagView
 	// 本标签信息
-	result := DB.Where("id = ?", tagID).Select("id, name, path").Find(&tag)
+	result := DB.Where("repo_name = ? and name = ?", repoName, tagName).Select("name, path").Find(&tag)
 	if result.Error != nil {
 		return tagView, result.Error
 	}
 	// 一级子标签列表
 	var subTags []Tag
-	result = DB.Model(&Tag{}).Where("parent_path = ?", tag.Path).Select("id, name, path").Find(&subTags)
+	result = DB.Model(&Tag{}).Where("parent_path = ?", tag.Path).Select("name, path").Find(&subTags)
 	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
 		return tagView, result.Error
 	}
 	// 多级子标签列表
 	for _, subTag := range subTags {
-		list = append(list, TagInfo{
-			subTag.ID,
-			subTag.Name,
-		})
+		list = append(list, subTag.Name)
 		traverseTagInfo(&list, &subTag)
 	}
-	tagView.ID = tag.ID
 	tagView.Name = tag.Name
 	tagView.SubTags = list
 	return tagView, nil
 }
 
-func traverseTagInfo(list *[]TagInfo, parentTag *Tag) {
+func traverseTagInfo(list *[]string, parentTag *Tag) {
 	var subTags []Tag
-	result := DB.Model(&Tag{}).Where("parent_path = ?", parentTag.Path).Select("id, name, path").Find(&subTags)
+	result := DB.Model(&Tag{}).Where("parent_path = ?", parentTag.Path).Select("name, path").Find(&subTags)
 	// 无子标签也立即返回
 	if result.Error != nil {
 		return
 	}
 	for _, tag := range subTags {
-		*list = append(*list, TagInfo{
-			tag.ID,
-			tag.Name,
-		})
+		*list = append(*list, tag.Name)
 	}
 	for _, tag := range subTags {
 		traverseTagInfo(list, &tag)

@@ -12,11 +12,11 @@ func migration() {
 		DB = DB.Set("gorm:table_options", "ENGINE=InnoDB")
 	}
 	// 自动迁移模式
-	DB.AutoMigrate(&Repo{}, &Tag{}, &Article{}, &User{})
+	DB.AutoMigrate(&Repo{}, &Tag{}, &Article{})
 	addAdmin()
 
 	// 创建管理员
-	addAdmin()
+	//addAdmin()
 	utils.Log().Info("数据表初始化完成")
 
 }

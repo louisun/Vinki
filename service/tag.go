@@ -10,12 +10,12 @@ import (
 
 type TagArticleInfoView struct {
 	models.TagView
-	ArticleInfos []models.ArticleInfo
+	ArticleInfos []string
 }
 
-// GetRootTagInfosByRepo 获取 Repo 下一级 Tag 信息
-func GetRootTagInfosByRepo(repoID uint64) serializer.Response {
-	tags, err := models.GetRootTagInfosByRepo(repoID)
+// GetTopTagInfosByRepo 获取 Repo 的一级 Tag 信息
+func GetTopTagInfosByRepo(repoName string) serializer.Response {
+	tags, err := models.GetTopTagInfosByRepo(repoName)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return serializer.ParamErrorResponse("当前仓库无标签可获取", err)
@@ -25,24 +25,24 @@ func GetRootTagInfosByRepo(repoID uint64) serializer.Response {
 	return serializer.SuccessResponse(tags, "")
 }
 
-// GetTagViewByID 根据 TagID 获取 TagArticleInfoView
-func GetTagViewByID(tagID uint64, flat bool) serializer.Response {
+// GetTagArticleView 根据 TagID 获取 TagArticleInfoView
+func GetTagArticleView(repoName string, tagName string, flat bool) serializer.Response {
 	var (
 		tagView models.TagView
 		err     error
 	)
 	if flat {
-		tagView, err = models.GetFlatTagViewByID(tagID)
+		tagView, err = models.GetFlatTagView(repoName, tagName)
 	} else {
-		tagView, err = models.GetTagViewByID(tagID)
+		tagView, err = models.GetTagView(repoName, tagName)
 	}
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return serializer.ParamErrorResponse("tag id 不存在", err)
+			return serializer.ParamErrorResponse("tag 不存在", err)
 		}
 		return serializer.DBErrorResponse("", err)
 	}
-	articles, err := models.GetArticleInfosByTagID(tagID)
+	articles, err := models.GetArticleList(repoName, tagName)
 	if err != nil {
 		return serializer.DBErrorResponse("", err)
 	}

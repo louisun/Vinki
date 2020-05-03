@@ -200,10 +200,10 @@ class NavbarComponent extends Component {
     };
 
     handleMenuItemClick = (event) => {
-        let id = parseInt(event.currentTarget.attributes["repo_id"].nodeValue)
+        let repoName = event.currentTarget.attributes["repo_name"].nodeValue
         for (let i = 0; i < this.props.repos.length; i++) {
-            if (this.props.repos[i].ID === id) {
-                this.props.setCurrentRepo(this.props.repos[i])
+            if (this.props.repos[i] === repoName) {
+                this.props.setCurrentRepo(repoName)
                 break
             }
         }
@@ -221,17 +221,17 @@ class NavbarComponent extends Component {
             let l = []
             for (let i = 0; i < repoList.length; i++) {
                 let className = ""
-                if (this.props.currentRepo.Name === repoList[i].Name) {
+                if (this.props.currentRepo === repoList[i]) {
                     className = classes.repoSelected
                 } else {
                     className = classes.repoMenu
                 }
                 l.push(
-                    <MenuItem className={className} onClick={this.handleMenuItemClick} repo_id={repoList[i].ID}>
+                    <MenuItem className={className} onClick={this.handleMenuItemClick} repo_name={repoList[i]}>
                         <ListItemIcon>
                             <ClassRoundedIcon fontSize="small" />
                         </ListItemIcon>
-                        <ListItemText primary={repoList[i].Name} />
+                        <ListItemText primary={repoList[i]} />
                     </MenuItem>
                 )
             }
@@ -275,7 +275,7 @@ class NavbarComponent extends Component {
                                 className={classes.repo}
                                 disableRipple
                             >
-                                {this.props.currentRepo != null ? this.props.currentRepo.Name : '无仓库'}
+                                {this.props.currentRepo !== "" ? this.props.currentRepo : '无仓库'}
                             </Button>
                             <StyledMenu
                                 id="customized-menu"

@@ -7,14 +7,13 @@ import (
 )
 
 type ArticleView struct {
-	ID    uint64
 	Title string
 	HTML  string
 }
 
 // 获取文章详情
-func GetArticleDetail(articleID uint64) serializer.Response {
-	article, err := models.GetArticleByID(articleID)
+func GetArticleDetail(repoName string, tagName string, articleName string) serializer.Response {
+	article, err := models.GetArticle(repoName, tagName, articleName)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return serializer.ParamErrorResponse("文章 ID 不存在", err)
@@ -22,7 +21,6 @@ func GetArticleDetail(articleID uint64) serializer.Response {
 		return serializer.DBErrorResponse("", err)
 	}
 	view := ArticleView{
-		ID:    article.ID,
 		Title: article.Title,
 		HTML:  article.HTML,
 	}
@@ -30,8 +28,8 @@ func GetArticleDetail(articleID uint64) serializer.Response {
 }
 
 // 获取某 Tag 下的文章列表
-func GetArticleListByTagID(tagID uint64) serializer.Response {
-	articles, err := models.GetArticleInfosByTagID(tagID)
+func GetArticleList(repoName string, tagName string) serializer.Response {
+	articles, err := models.GetArticleList(repoName, tagName)
 	if err != nil {
 		return serializer.DBErrorResponse("", err)
 	}
@@ -45,14 +43,14 @@ func addArticles(articles []*models.Article) error {
 }
 
 // deleteArticlesByTag 删除某 Tag 下的 Article
-func deleteArticlesByTag(tagID uint64) error {
-	err := models.DeleteArticlesByTagID(tagID)
+func deleteArticlesByTag(repoName string, tagName string) error {
+	err := models.DeleteArticlesByTagName(repoName, tagName)
 	return err
 }
 
 // deleteArticlesByRepo 删除某 Repo 下的 Article
-func deleteArticlesByRepo(repoID uint64) error {
-	err := models.DeleteArticlesByRepoID(repoID)
+func deleteArticlesByRepoName(repoName string) error {
+	err := models.DeleteArticlesByRepoName(repoName)
 	return err
 }
 

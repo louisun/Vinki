@@ -11,20 +11,17 @@ import (
 var numberRegex = regexp.MustCompile(`^(\d+)\..*`)
 
 type Article struct {
-	ID    uint64 `gorm:"primary_key"`
-	Title string `gorm:"type:varchar(100);not null"` // 文章标题
-	Path  string `gorm:"type:varchar(200);not null"` // 文件路径
-	HTML  string `gorm:"type:text"`                  // Markdown 渲染后的 HTML
-	TagID uint64 // 标签 ID
-	Tag   Tag    `gorm:"PRELOAD:false;save_associations:false"` // 关联的 Tag
+	ID       uint64 `gorm:"primary_key"`
+	Title    string `gorm:"type:varchar(100);not null"` // 文章标题
+	Path     string `gorm:"type:varchar(200);not null"` // 文件路径
+	HTML     string `gorm:"type:text"`                  // Markdown 渲染后的 HTML
+	TagName  string
+	RepoName string
+	Tag      Tag  `gorm:"foreignkey:TagName;association_foreignkey:Name;PRELOAD:false;save_associations:false"`  // 关联的 Tag
+	Repo     Repo `gorm:"foreignkey:RepoName;association_foreignkey:Name;PRELOAD:false;save_associations:false"` // 关联的 Repo
 }
 
-type ArticleInfo struct {
-	ID    uint64
-	Title string
-}
-
-type Articles []ArticleInfo
+type Articles []string
 
 func (a Articles) Len() int {
 	return len(a)
@@ -35,8 +32,8 @@ func (a Articles) Swap(i, j int) {
 }
 
 func (a Articles) Less(i, j int) bool {
-	matchA := numberRegex.FindStringSubmatch(a[i].Title)
-	matchB := numberRegex.FindStringSubmatch(a[j].Title)
+	matchA := numberRegex.FindStringSubmatch(a[i])
+	matchB := numberRegex.FindStringSubmatch(a[j])
 	var nA = -1
 	var nB = -1
 	if matchA != nil {
@@ -52,7 +49,7 @@ func (a Articles) Less(i, j int) bool {
 	} else if nA == -1 && nB != -1 {
 		return false
 	} else {
-		return a[i].Title < a[j].Title
+		return a[i] < a[j]
 	}
 }
 
@@ -60,17 +57,18 @@ func (Article) TableName() string {
 	return "article"
 }
 
-// GetArticleByID 通过 ID 获取 Article
-func GetArticleByID(ID uint64) (Article, error) {
+// GetArticle 通过仓库名、标签名、文章名获取 Article
+func GetArticle(repoName string, tagName string, articleName string) (Article, error) {
 	var article Article
-	result := DB.First(&article, ID)
+	result := DB.Where("repo_name = ? and tag_name = ? and title = ?", repoName, tagName, articleName).First(&article)
 	return article, result.Error
 }
 
-// GetArticleInfosByTagID 根据 tagID 返回 Article 基本信息
-func GetArticleInfosByTagID(tagID uint64) ([]ArticleInfo, error) {
-	var articles []ArticleInfo
-	result := DB.Model(&Article{}).Where("tag_id = ?", tagID).Select("id, title").Scan(&articles)
+// GetArticleList 根据仓库名和标签名获取 Article 列表信息
+func GetArticleList(repoName string, tagName string) ([]string, error) {
+	articles := make([]string, 0)
+	result := DB.Model(&Article{}).Where("repo_name = ? and tag_name = ?", repoName, tagName).
+		Pluck("title", &articles)
 	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
 		return articles, result.Error
 	}
@@ -86,15 +84,15 @@ func TruncateArticles() error {
 	return nil
 }
 
-// DeleteArticlesByRepoID 删除该 Repo 下的 Article
-func DeleteArticlesByRepoID(repoID uint64) error {
-	result := DB.Preload("Tag", "repoID = ?", repoID).Delete(&Article{})
+// DeleteArticlesByRepoName 删除该 Repo 下的 Article
+func DeleteArticlesByRepoName(repoName string) error {
+	result := DB.Where("repo_name = ?", repoName).Delete(&Article{})
 	return result.Error
 }
 
 // DeleteArticlesByTagID 删除该 Tag 下的 Article
-func DeleteArticlesByTagID(tagID uint64) error {
-	result := DB.Where("tag_id = ?", tagID).Delete(&Article{})
+func DeleteArticlesByTagName(repoName string, tagName string) error {
+	result := DB.Where("repo_name = ? and tag_name = ?", repoName, tagName).Delete(&Article{})
 	return result.Error
 }
 

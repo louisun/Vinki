@@ -1,5 +1,5 @@
 const vinkiApp = (state = [], action) => {
-    switch(action.type) {
+    switch (action.type) {
         case 'SET_REPOS':
             return Object.assign({}, state, {
                 repo: Object.assign({}, state.repo, {
@@ -8,23 +8,23 @@ const vinkiApp = (state = [], action) => {
             })
         case 'SET_CURRENT_REPO':
             return Object.assign({}, state, {
-                repo: Object.assign({}, state.repo, {
+                repo: Object.assign("", state.repo, {
                     currentRepo: action.currentRepo,
                 })
             })
-        case 'SET_TOP_TAGS':    
+        case 'SET_TOP_TAGS':
             return Object.assign({}, state, {
                 tag: Object.assign({}, state.tag, {
                     topTags: action.topTags,
                 })
             })
-        case 'SET_SECOND_TAGS':    
+        case 'SET_SECOND_TAGS':
             return Object.assign({}, state, {
                 tag: Object.assign({}, state.tag, {
                     secondTags: action.secondTags,
                 })
             })
-        case 'SET_SUB_TAGS':    
+        case 'SET_SUB_TAGS':
             return Object.assign({}, state, {
                 tag: Object.assign({}, state.tag, {
                     subTags: action.subTags,
@@ -49,7 +49,7 @@ const vinkiApp = (state = [], action) => {
                 })
             })
         default:
-            return state    
+            return state
     }
 }
 

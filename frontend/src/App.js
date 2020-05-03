@@ -26,6 +26,7 @@ const useStyles = makeStyles((theme) => ({
         display: "flex",
         justifyContent: "space-between",
         backgroundColor: "#F2F4F8",
+        // boxShadow: "0 12px 15px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19)"
     },
 }));
 
@@ -46,8 +47,8 @@ export default function App() {
                         <Route path="/login">
                             <Login />
                         </Route>
-                        <Route path="/tag/:tagID/article/:articleID" render={(props) => (
-                            <Article key={`${props.match.params.tagID}-${props.match.params.articleID}`} />
+                        <Route path="/article/:repoName/:tagName/:articleName" render={(props) => (
+                            <Article key={`${props.match.params.repoName}-${props.match.params.tagName}-${props.match.params.articleName}`} />
                         )} />
                         <Route path="/(|home|tags)">
                             <Tags />
