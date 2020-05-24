@@ -39,6 +39,7 @@ import {
   lastOfArray,
 } from '../../utils';
 import Hilight from './Highlight';
+import Latex from './Latex';
 
 const mapStateToProps = state => {
     return {
@@ -601,7 +602,9 @@ class ArticleComponent extends Component {
                                     <Skeleton animation="wave" />
                                 </div>
                             ) : (
-                                    <Hilight content={this.state.article.HTML}></Hilight>
+                                    <Latex>
+                                        <Hilight content={this.state.article.HTML}></Hilight>
+                                    </Latex>
                                 )}
                         </div>
                     </div>

@@ -1,5 +1,4 @@
-html,
-body {
+html, body {
   margin: 0;
   padding: 0;
   /* max-height: 100%; */
@@ -19,4 +18,8 @@ body {
 
 #root {
   height: 100%;
+}
+
+.mjx-chtml {
+  color: rgb(59, 65, 79);
 }
