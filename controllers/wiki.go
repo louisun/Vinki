@@ -14,7 +14,7 @@ func GetArticle(c *gin.Context) {
 	tagName := c.Query("tagName")
 	articleName := c.Query("articleName")
 	if repoName == "" || tagName == "" || articleName == "" {
-		c.JSON(200, serializer.ParamErrorResponse("", errors.New("仓库名、标签名和文章名不能为空")))
+		c.JSON(200, serializer.CreateGeneralParamErrorResponse("", errors.New("仓库名、标签名和文章名不能为空")))
 		return
 	}
 	res := service.GetArticleDetail(repoName, tagName, articleName)
@@ -27,7 +27,7 @@ func GetTagView(c *gin.Context) {
 	repoName := c.Query("repoName")
 	tagName := c.Query("tagName")
 	if repoName == "" || tagName == "" {
-		c.JSON(200, serializer.ParamErrorResponse("", errors.New("仓库名和标签名不能为空")))
+		c.JSON(200, serializer.CreateGeneralParamErrorResponse("", errors.New("仓库名和标签名不能为空")))
 		return
 	}
 	var flat bool
@@ -44,7 +44,7 @@ func GetTagView(c *gin.Context) {
 func GetTopTags(c *gin.Context) {
 	repoName := c.Query("repoName")
 	if repoName == "" {
-		c.JSON(200, serializer.ParamErrorResponse("", errors.New("仓库名不能为空")))
+		c.JSON(200, serializer.CreateGeneralParamErrorResponse("", errors.New("仓库名不能为空")))
 		return
 	}
 	res := service.GetTopTagInfosByRepo(repoName)
@@ -54,7 +54,11 @@ func GetTopTags(c *gin.Context) {
 
 // GetRepos 获取所有 Repo 列表
 func GetRepos(c *gin.Context) {
-	res := service.GetRepoInfos()
-	c.JSON(200, res)
+	user := GetCurrentUserFromCtx(c)
+	if user != nil {
+		c.JSON(200, serializer.CreateSuccessResponse(user.RepoNames, ""))
+		return
+	}
+	c.JSON(200, serializer.GetUnauthorizedResponse())
 	return
 }

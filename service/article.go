@@ -16,24 +16,24 @@ func GetArticleDetail(repoName string, tagName string, articleName string) seria
 	article, err := models.GetArticle(repoName, tagName, articleName)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return serializer.ParamErrorResponse("文章 ID 不存在", err)
+			return serializer.CreateGeneralParamErrorResponse("文章 ID 不存在", err)
 		}
-		return serializer.DBErrorResponse("", err)
+		return serializer.CreateDBErrorResponse("", err)
 	}
 	view := ArticleView{
 		Title: article.Title,
 		HTML:  article.HTML,
 	}
-	return serializer.SuccessResponse(view, "")
+	return serializer.CreateSuccessResponse(view, "")
 }
 
 // 获取某 Tag 下的文章列表
 func GetArticleList(repoName string, tagName string) serializer.Response {
 	articles, err := models.GetArticleList(repoName, tagName)
 	if err != nil {
-		return serializer.DBErrorResponse("", err)
+		return serializer.CreateDBErrorResponse("", err)
 	}
-	return serializer.SuccessResponse(articles, "")
+	return serializer.CreateSuccessResponse(articles, "")
 }
 
 // 批量添加 Articles

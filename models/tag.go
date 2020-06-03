@@ -10,7 +10,7 @@ import (
 type Tag struct {
 	ID         uint64         `gorm:"primary_key"`
 	Path       string         `gorm:"type:varchar(200);index:path;not null"`             // Tag 目录路径
-	Name       string         `gorm:"type:varchar(200);not null"`                        // 标签名称（多级拼合）
+	Name       string         `gorm:"type:varchar(200);index:name;not null"`             // 标签名称（多级拼合）
 	ParentPath sql.NullString `gorm:"type:varchar(200);index:parent_path;default: null"` // 父标签路径
 	RepoName   string
 	Repo       Repo `gorm:"foreignkey:RepoName;association_foreignkey:Name;PRELOAD:false;save_associations:false"`
@@ -33,17 +33,25 @@ func GetTagsByRepoName(repoName string) ([]Tag, error) {
 	return tags, result.Error
 }
 
+// GetTagsBySearchName 根据 repo 名和 tagName 搜索 Tags
+func GetTagsBySearchName(repoName, tagName string) ([]string, error) {
+	var tags []string
+	pattern := "%" + tagName + "%"
+	result := DB.Model(&Tag{}).Where("repo_name = ? AND name LIKE ?", repoName, pattern).Order("length(`name`)").Pluck("name", &tags)
+	return tags, result.Error
+}
+
 // GetRootTagsByRepo 根据 repo 名获取所有一级标签的 Tag 信息
 func GetRootTagsByRepo(repoName string) ([]Tag, error) {
 	var tags []Tag
-	result := DB.Where("repo_name = ? and parent_path is null", repoName).Order("name").Find(&tags)
+	result := DB.Where("repo_name = ? AND parent_path IS NULL", repoName).Order("name").Find(&tags)
 	return tags, result.Error
 }
 
 // GetTopTagInfosByRepo 根据 repo 名获取所有一级标签的名称
 func GetTopTagInfosByRepo(repoName string) ([]string, error) {
 	tags := make([]string, 0)
-	result := DB.Model(&Tag{}).Where("repo_name = ? and parent_path is null", repoName).
+	result := DB.Model(&Tag{}).Where("repo_name = ? AND parent_path IS NULL", repoName).
 		Order("name").Pluck("name", &tags)
 	return tags, result.Error
 }
@@ -53,7 +61,7 @@ func GetTagView(repoName string, tagName string) (TagView, error) {
 	var tagView TagView
 	var tag Tag
 	// 本标签信息
-	result := DB.Where("repo_name = ? and name = ?", repoName, tagName).Select("name, path").Find(&tag)
+	result := DB.Where("repo_name = ? AND name = ?", repoName, tagName).Select("name, path").Find(&tag)
 	if result.Error != nil {
 		return tagView, result.Error
 	}
@@ -74,7 +82,7 @@ func GetFlatTagView(repoName string, tagName string) (TagView, error) {
 	var list []string
 	var tagView TagView
 	// 本标签信息
-	result := DB.Where("repo_name = ? and name = ?", repoName, tagName).Select("name, path").Find(&tag)
+	result := DB.Where("repo_name = ? AND name = ?", repoName, tagName).Select("name, path").Find(&tag)
 	if result.Error != nil {
 		return tagView, result.Error
 	}

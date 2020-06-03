@@ -15,7 +15,7 @@ func AddRepo(repo *Repo) error {
 	return result.Error
 }
 
-func GetRepoNames() ([]string, error) {
+func GetAllRepoNames() ([]string, error) {
 	l := make([]string, 0, 10)
 	result := DB.Model(&Repo{}).Pluck("name", &l)
 	return l, result.Error

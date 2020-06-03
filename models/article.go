@@ -12,13 +12,18 @@ var numberRegex = regexp.MustCompile(`^(\d+)\..*`)
 
 type Article struct {
 	ID       uint64 `gorm:"primary_key"`
-	Title    string `gorm:"type:varchar(100);not null"` // 文章标题
-	Path     string `gorm:"type:varchar(200);not null"` // 文件路径
-	HTML     string `gorm:"type:text"`                  // Markdown 渲染后的 HTML
+	Title    string `gorm:"type:varchar(100);index:title;not null"` // 文章标题
+	Path     string `gorm:"type:varchar(200);not null"`             // 文件路径
+	HTML     string `gorm:"type:text"`                              // Markdown 渲染后的 HTML
 	TagName  string
 	RepoName string
 	Tag      Tag  `gorm:"foreignkey:TagName;association_foreignkey:Name;PRELOAD:false;save_associations:false"`  // 关联的 Tag
 	Repo     Repo `gorm:"foreignkey:RepoName;association_foreignkey:Name;PRELOAD:false;save_associations:false"` // 关联的 Repo
+}
+
+type ArticleTagInfo struct {
+	TagName     string `gorm:"column:tag_name" json:"tag"`
+	ArticleName string `gorm:"column:title" json:"article"`
 }
 
 type Articles []string
@@ -60,14 +65,23 @@ func (Article) TableName() string {
 // GetArticle 通过仓库名、标签名、文章名获取 Article
 func GetArticle(repoName string, tagName string, articleName string) (Article, error) {
 	var article Article
-	result := DB.Where("repo_name = ? and tag_name = ? and title = ?", repoName, tagName, articleName).First(&article)
+	result := DB.Where("repo_name = ? AND tag_name = ? AND title = ?", repoName, tagName, articleName).First(&article)
 	return article, result.Error
+}
+
+// GetArticlesBySearchParam 通过仓库名、文章名搜索 Articles
+func GetArticlesBySearchParam(repoName string, articleName string) ([]ArticleTagInfo, error) {
+	var articles []ArticleTagInfo
+	pattern := "%" + articleName + "%"
+	result := DB.Model(&Article{}).Where("repo_name = ? AND title LIKE ?", repoName, pattern).
+		Select("title, tag_name").Order("`title`, length(`title`)").Scan(&articles)
+	return articles, result.Error
 }
 
 // GetArticleList 根据仓库名和标签名获取 Article 列表信息
 func GetArticleList(repoName string, tagName string) ([]string, error) {
 	articles := make([]string, 0)
-	result := DB.Model(&Article{}).Where("repo_name = ? and tag_name = ?", repoName, tagName).
+	result := DB.Model(&Article{}).Where("repo_name = ? AND tag_name = ?", repoName, tagName).
 		Pluck("title", &articles)
 	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
 		return articles, result.Error
@@ -92,7 +106,7 @@ func DeleteArticlesByRepoName(repoName string) error {
 
 // DeleteArticlesByTagID 删除该 Tag 下的 Article
 func DeleteArticlesByTagName(repoName string, tagName string) error {
-	result := DB.Where("repo_name = ? and tag_name = ?", repoName, tagName).Delete(&Article{})
+	result := DB.Where("repo_name = ? AND tag_name = ?", repoName, tagName).Delete(&Article{})
 	return result.Error
 }
 

@@ -19,7 +19,7 @@ RUN apk add --update gcc g++
 RUN go build -o vinki .
 
 FROM alpine:latest AS prod
-COPY --from=build /go/src/github.com/louisun/vinki /vinki
+COPY --from=build /go/src/github.com/louisun/vinki/vinki /vinki/
 WORKDIR /vinki
 EXPOSE 6166
 ENTRYPOINT ["./vinki"]

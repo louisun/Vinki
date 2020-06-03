@@ -21,7 +21,7 @@ import (
 func RefreshGlobal() serializer.Response {
 	// 1. 清空数据库
 	if err := truncateDB(); err != nil {
-		return serializer.DBErrorResponse("", err)
+		return serializer.CreateDBErrorResponse("", err)
 	}
 	// 遍历每个 Repo 配置项
 	for _, r := range conf.GlobalConfig.Repositories {
@@ -38,13 +38,14 @@ func RefreshGlobal() serializer.Response {
 			// 2. 创建 Repo
 			if err := addRepo(&repo); err != nil {
 				utils.Log().Errorf("addRepo failed: %v", err)
-				return serializer.DBErrorResponse("", err)
+				return serializer.CreateDBErrorResponse("", err)
 			}
 			// 遍历 Repo，找到 Tag 和 Article 的路径
 			tagPaths, t2f, err := traverseRepo(r)
 			tags := make([]*models.Tag, 0, len(tagPaths))
 			for _, tp := range tagPaths {
 				parentPath := filepath.Dir(tp)
+				// TODO ............
 				tagName := strings.Join(strings.Split(strings.TrimPrefix(tp, repo.Path+"/"), "/"), "--")
 				if parentPath == repoPath {
 					// 一级目录
@@ -69,7 +70,7 @@ func RefreshGlobal() serializer.Response {
 			// 3. 创建 Tags
 			if err = AddTags(tags); err != nil {
 				utils.Log().Errorf("AddTags failed: %v", err)
-				return serializer.DBErrorResponse("", err)
+				return serializer.CreateDBErrorResponse("", err)
 			}
 			for _, tag := range tags {
 				tagPath2Name[tag.Path] = tag.Name
@@ -82,7 +83,7 @@ func RefreshGlobal() serializer.Response {
 					htmlBytes, err = utils.RenderMarkdown(fileInfo.Path)
 					if err != nil {
 						utils.Log().Errorf("Generate wiki html failed, err: %v", err)
-						return serializer.InternalErrorResponse("", err)
+						return serializer.CreateInternalErrorResponse("", err)
 					}
 					articleList = append(articleList, &models.Article{
 						RepoName: repo.Name,
@@ -95,17 +96,17 @@ func RefreshGlobal() serializer.Response {
 				err = addArticles(articleList)
 				if err != nil {
 					utils.Log().Errorf("addArticles failed: %v", err)
-					return serializer.DBErrorResponse("", err)
+					return serializer.CreateDBErrorResponse("", err)
 				}
 			}
 		} else {
 			err := errors.New(fmt.Sprintf("Repo path does not exist: %s", r.Root))
 			utils.Log().Error(err)
-			return serializer.InternalErrorResponse("", err)
+			return serializer.CreateInternalErrorResponse("", err)
 		}
 	}
 	utils.Log().Info("Refresh database success!")
-	return serializer.SuccessResponse("", "同步仓库成功")
+	return serializer.CreateSuccessResponse("", "同步仓库成功")
 }
 
 // truncateDB 清空所有 Article、Tag、Repo

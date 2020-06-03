@@ -1,7 +1,10 @@
 package serializer
 
 import (
+	"encoding/json"
+
 	"github.com/gin-gonic/gin"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 // 响应体
@@ -12,9 +15,9 @@ type Response struct {
 	Error string      `json:"error,omitempty"` // 错误
 }
 
-func SuccessResponse(data interface{}, msg string) Response {
+func CreateSuccessResponse(data interface{}, msg string) Response {
 	return Response{
-		Code: SuccessCode,
+		Code: CodeSuccess,
 		Data: data,
 		Msg:  msg,
 	}
@@ -40,23 +43,66 @@ func CreateErrorResponse(errCode int, msg string, err error) Response {
 	return response
 }
 
-func DBErrorResponse(msg string, err error) Response {
+func CreateDBErrorResponse(msg string, err error) Response {
 	if msg == "" {
 		msg = "数据库操作失败"
 	}
-	return CreateErrorResponse(DBErrorCode, msg, err)
+	return CreateErrorResponse(CodeDBError, msg, err)
 }
 
-func ParamErrorResponse(msg string, err error) Response {
-	if msg == "" {
-		msg = "参数错误"
-	}
-	return CreateErrorResponse(DBErrorCode, msg, err)
-}
-
-func InternalErrorResponse(msg string, err error) Response {
+func CreateInternalErrorResponse(msg string, err error) Response {
 	if msg == "" {
 		msg = "系统内部错误"
 	}
-	return CreateErrorResponse(InternalErrorCode, msg, err)
+	return CreateErrorResponse(CodeInternalError, msg, err)
+}
+
+func CreateGeneralParamErrorResponse(msg string, err error) Response {
+	if msg == "" {
+		msg = "参数错误"
+	}
+	return CreateErrorResponse(CodeParamError, msg, err)
+}
+
+// CreateParamErrorMsg 根据Validator返回的错误信息给出错误提示
+func CreateParamErrorMsg(filed string, tag string) string {
+	// 未通过验证的表单域与中文对应
+	fieldMap := map[string]string{
+		"UserName": "邮箱",
+		"Password": "密码",
+		"NickName": "昵称",
+	}
+	// 未通过的规则与中文对应
+	tagMap := map[string]string{
+		"required": "不能为空",
+		"min":      "太短",
+		"max":      "太长",
+		"email":    "格式不正确",
+	}
+	fieldVal, findField := fieldMap[filed]
+	tagVal, findTag := tagMap[tag]
+	if findField && findTag {
+		// 返回拼接出来的错误信息
+		return fieldVal + tagVal
+	}
+	return ""
+}
+
+// CreateParamErrorResponse 返回错误消息
+func CreateParamErrorResponse(err error) Response {
+	// 处理 Validator 产生的错误
+	if ve, ok := err.(validator.ValidationErrors); ok {
+		for _, e := range ve {
+			return CreateGeneralParamErrorResponse(
+				CreateParamErrorMsg(e.Field(), e.Tag()),
+				err,
+			)
+		}
+	}
+	// 处理 JSON 类型错误
+	if _, ok := err.(*json.UnmarshalTypeError); ok {
+		return CreateGeneralParamErrorResponse("JSON类型不匹配", err)
+	}
+	// 其他参数错误
+	return CreateGeneralParamErrorResponse("参数错误", err)
 }
