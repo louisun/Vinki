@@ -8,6 +8,7 @@ import (
 )
 
 func Init(path string) {
+	InitApplication()
 	// 加载配置文件
 	conf.Init(path)
 	// 设置 gin 模式

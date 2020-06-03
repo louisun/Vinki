@@ -33,8 +33,10 @@ type RedisConfig struct {
 
 // 系统配置
 type SystemConfig struct {
-	Debug bool `default:"false"` // 调试模式
-	Port  uint `default:"6166"`  // 监听端口
+	Debug         bool   `default:"false"` // 调试模式
+	Port          uint   `default:"6166"`  // 监听端口
+	SessionSecret string `default:"session-vinki-2020"`
+	HashIDSalt    string `default:"hash-salt-2020"`
 }
 
 // 目录

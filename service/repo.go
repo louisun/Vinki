@@ -6,15 +6,15 @@ import (
 	"github.com/louisun/vinki/pkg/serializer"
 )
 
-func GetRepoInfos() serializer.Response {
-	repos, err := models.GetRepoNames()
+func GetAllRepoInfos() serializer.Response {
+	repos, err := models.GetAllRepoNames()
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return serializer.ParamErrorResponse("当前没有仓库可获取", err)
+			return serializer.CreateGeneralParamErrorResponse("当前没有仓库可获取", err)
 		}
-		return serializer.DBErrorResponse("", err)
+		return serializer.CreateDBErrorResponse("", err)
 	}
-	return serializer.SuccessResponse(repos, "")
+	return serializer.CreateSuccessResponse(repos, "")
 }
 
 // addRepo 添加 Repo

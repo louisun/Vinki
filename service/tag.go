@@ -18,11 +18,11 @@ func GetTopTagInfosByRepo(repoName string) serializer.Response {
 	tags, err := models.GetTopTagInfosByRepo(repoName)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return serializer.ParamErrorResponse("当前仓库无标签可获取", err)
+			return serializer.CreateGeneralParamErrorResponse("当前仓库无标签可获取", err)
 		}
-		return serializer.DBErrorResponse("", err)
+		return serializer.CreateDBErrorResponse("", err)
 	}
-	return serializer.SuccessResponse(tags, "")
+	return serializer.CreateSuccessResponse(tags, "")
 }
 
 // GetTagArticleView 根据 TagID 获取 TagArticleInfoView
@@ -38,20 +38,20 @@ func GetTagArticleView(repoName string, tagName string, flat bool) serializer.Re
 	}
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return serializer.ParamErrorResponse("tag 不存在", err)
+			return serializer.CreateGeneralParamErrorResponse("tag 不存在", err)
 		}
-		return serializer.DBErrorResponse("", err)
+		return serializer.CreateDBErrorResponse("", err)
 	}
 	articles, err := models.GetArticleList(repoName, tagName)
 	if err != nil {
-		return serializer.DBErrorResponse("", err)
+		return serializer.CreateDBErrorResponse("", err)
 	}
 	sort.Sort(models.Articles(articles))
 	view := TagArticleInfoView{
 		TagView:      tagView,
 		ArticleInfos: articles,
 	}
-	return serializer.SuccessResponse(view, "")
+	return serializer.CreateSuccessResponse(view, "")
 }
 
 // 添加标签名

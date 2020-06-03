@@ -10,6 +10,7 @@ import (
 	"github.com/rakyll/statik/fs"
 )
 
+// GinFS 实现了 ServeFileSystem 和 FileSystem 接口
 type GinFS struct {
 	FS http.FileSystem
 }
@@ -25,9 +26,9 @@ func (b *GinFS) Exists(prefix string, filepath string) bool {
 		return false
 	}
 	return true
-
 }
 
+// InitStatic 初始化静态资源的文件系统
 func InitStatic() {
 	var err error
 
@@ -36,11 +37,11 @@ func InitStatic() {
 		// 使用 gin-contrib 的 static.LoadFile 创建静态文件系统
 		StaticFS = static.LocalFile(utils.RelativePath("statics"), false)
 	} else {
+		// 不存在 static 目录，加载 statik 注册的数据（Zip压缩的字符串），创建文件系统
 		StaticFS = &GinFS{}
 		StaticFS.(*GinFS).FS, err = fs.New()
 		if err != nil {
 			utils.Log().Panic("无法初始化静态资源, %s", err)
 		}
 	}
-
 }
