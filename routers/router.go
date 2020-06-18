@@ -20,7 +20,7 @@ func InitRouter() *gin.Engine {
 	r := gin.Default()
 	if gin.Mode() == gin.TestMode {
 		r.Use(cors.New(cors.Config{
-			AllowAllOrigins:  true,
+			AllowOrigins:     []string{"http://localhost:3000"},
 			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"},
 			AllowHeaders:     []string{"Origin", "Content-Length", "Content-Type"},
 			AllowCredentials: true,

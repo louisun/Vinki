@@ -23,13 +23,12 @@ func GetUnauthorizedResponse() Response {
 }
 
 func CreateUserResponse(user models.User) Response {
-	return Response{
-		Data: UserDTO{
-			ID:       utils.GenerateHash(user.ID, utils.UserID, conf.GlobalConfig.System.HashIDSalt),
-			Email:    user.Email,
-			NickName: user.NickName,
-			IsAdmin:  user.IsAdmin,
-			Status:   user.Status,
-		},
+	data := UserDTO{
+		ID:       utils.GenerateHash(user.ID, utils.UserID, conf.GlobalConfig.System.HashIDSalt),
+		Email:    user.Email,
+		NickName: user.NickName,
+		IsAdmin:  user.IsAdmin,
+		Status:   user.Status,
 	}
+	return CreateSuccessResponse(data, "")
 }

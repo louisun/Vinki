@@ -24,6 +24,7 @@ func RefreshGlobal() serializer.Response {
 		return serializer.CreateDBErrorResponse("", err)
 	}
 	// 遍历每个 Repo 配置项
+	var repos []string
 	for _, r := range conf.GlobalConfig.Repositories {
 		if utils.ExistsDir(r.Root) {
 			var repoPath = r.Root
@@ -35,6 +36,7 @@ func RefreshGlobal() serializer.Response {
 				Name: filepath.Base(repoPath),
 				Path: repoPath,
 			}
+			repos = append(repos, repo.Name)
 			// 2. 创建 Repo
 			if err := addRepo(&repo); err != nil {
 				utils.Log().Errorf("addRepo failed: %v", err)
@@ -104,6 +106,11 @@ func RefreshGlobal() serializer.Response {
 			utils.Log().Error(err)
 			return serializer.CreateInternalErrorResponse("", err)
 		}
+	}
+	err := models.UpdateUserAllowedRepos(1, repos)
+	if err != nil {
+		utils.Log().Errorf("Grant repos to admin failed, err: %v", err)
+		return serializer.CreateDBErrorResponse("", err)
 	}
 	utils.Log().Info("Refresh database success!")
 	return serializer.CreateSuccessResponse("", "同步仓库成功")
