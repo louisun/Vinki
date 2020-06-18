@@ -10,6 +10,16 @@ func Ping(c *gin.Context) {
 	c.JSON(200, serializer.CreateSuccessResponse("pong", "服务器状态正常"))
 }
 
+func GetSiteConfig(c *gin.Context) {
+	user := GetCurrentUserFromCtx(c)
+	if user != nil {
+		c.JSON(200, serializer.CreateSuccessResponse(user, ""))
+		return
+	}
+	c.JSON(200, serializer.GetUnauthorizedResponse())
+	return
+}
+
 // 刷新某 Tag 下的 articles
 //func RefreshByTag(c *gin.Context) {
 //	c.JSON(200, serializer.Response{

@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+import Auth from './Auth';
+
 // export let baseURL = "http://localhost:6167/api/v1"
 export let baseURL = "/api/v1";
 
@@ -9,9 +11,8 @@ export const getBaseURL = () => {
 
 const instance = axios.create({
     baseURL: getBaseURL(),
-    withCredentials: false,
+    withCredentials: true,
     crossDomain: true,
-    // headers: {'Access-Control-Allow-Origin': '*'}
 });
 
 function AppError(message, code, error) {
@@ -28,6 +29,19 @@ instance.interceptors.response.use(
     function (response) {
         response.rawData = response.data;
         response.data = response.data.data;
+        if (response.rawData.code !== 200) {
+            // 认证错误：设置认证状态为登出，重定向至登录页面
+            if (response.rawData.code === 401) {
+                Auth.Signout()
+                window.location.href = "/#/login";
+            }
+            // 非管理员，重定向至主页
+            if (response.rawData.code === 2000) {
+                window.location.href = "/#/home";
+            }
+            // 错误都要抛出 AppError
+            throw new AppError(response.rawData.msg, response.rawData.code, response.rawData.error);
+        }
         return response;
     },
     function (error) {

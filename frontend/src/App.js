@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { useSelector } from 'react-redux';
 import {
   Route,
   Switch,
@@ -12,11 +13,13 @@ import {
 
 import Article from './components/Article/Article';
 import NotFound from './components/Common/NotFound';
+import MessageBar from './components/Common/Snackbar';
 import Login from './components/Login/Login';
 import Navbar from './components/Navbar/Navbar';
 import Tags from './components/Tag/Tag';
+import AuthRoute from './middleware/AuthRoute';
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
     container: {
         minHeight: "100%",
     },
@@ -33,12 +36,13 @@ const useStyles = makeStyles((theme) => ({
 
 export default function App() {
     const classes = useStyles();
-
+    const isLogin = useSelector(state => state.isLogin);
     return (
         <React.Fragment>
             <div id="container" className={classes.container}>
                 {/*基准样式*/}
                 <CssBaseline />
+                <MessageBar />
                 {/*导航栏*/}
                 <Navbar />
                 {/*主内容*/}
@@ -50,9 +54,9 @@ export default function App() {
                         <Route path="/article/:repoName/:tagName/:articleName" render={(props) => (
                             <Article key={`${props.match.params.repoName}-${props.match.params.tagName}-${props.match.params.articleName}`} />
                         )} />
-                        <Route path="/(|home|tags)">
+                        <AuthRoute path="/(|home|tags)" isLogin={isLogin}>
                             <Tags />
-                        </Route>
+                        </AuthRoute>
                         <Route path="*">
                             <NotFound msg={"页面不存在"} />
                         </Route>

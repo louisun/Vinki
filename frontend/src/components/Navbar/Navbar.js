@@ -7,13 +7,14 @@ import {
   withRouter,
 } from 'react-router-dom';
 
+import { IconButton } from '@material-ui/core';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 // import IconButton from '@material-ui/core/IconButton';
 // import InputBase from '@material-ui/core/InputBase';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import Menu from '@material-ui/core/Menu';
+import StyledMenu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import {
   fade,
@@ -22,7 +23,9 @@ import {
 } from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
+import AccountCircle from '@material-ui/icons/AccountCircle';
 import ClassRoundedIcon from '@material-ui/icons/ClassRounded';
+import ExitToApp from '@material-ui/icons/ExitToApp';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 // import MenuIcon from '@material-ui/icons/Menu';
 // import SearchIcon from '@material-ui/icons/Search';
@@ -30,14 +33,18 @@ import StarRoundedIcon from '@material-ui/icons/StarRounded';
 
 import {
   setCurrentRepo,
+  setLoginStatus,
   setRepos,
+  toggleSnackbar,
 } from '../../actions';
 import API from '../../middleware/Api';
+import Auth from '../../middleware/Auth';
 
 const mapStateToProps = state => {
     return {
         currentRepo: state.repo.currentRepo,
         repos: state.repo.repos,
+        isLogin: state.isLogin
     }
 }
 
@@ -48,11 +55,16 @@ const mapDispatchToProps = dispatch => {
         },
         setCurrentRepo: currentRepo => {
             dispatch(setCurrentRepo(currentRepo))
-        }
+        },
+        toggleSnackbar: (vertical, horizontal, msg, color) => {
+            dispatch(toggleSnackbar(vertical, horizontal, msg, color));
+        },
+        setLoginStatus: status => {
+            dispatch(setLoginStatus(status));
+        },
     }
 }
-
-const StyledMenu = withStyles({
+const menuStyle = {
     paper: {
         border: '1px solid #d3d4d5',
     },
@@ -60,10 +72,12 @@ const StyledMenu = withStyles({
         backgroundColor: '#F2F4F8',
         color: '#4C566A',
     }
-})((props) => (
-    <Menu
+}
+const RepoMenu = withStyles(menuStyle)((props) => (
+    <StyledMenu
         elevation={0}
         getContentAnchorEl={null}
+        disableScrollLock={true}
         anchorOrigin={{
             vertical: 'bottom',
             horizontal: 'center',
@@ -76,16 +90,22 @@ const StyledMenu = withStyles({
     />
 ));
 
-// const StyledMenuItem = withStyles((theme) => ({
-//     root: {
-//         '&:focus': {
-//             backgroundColor: theme.palette.primary.main,
-//             '& .MuiListItemIcon-root, & .MuiListItemText-primary': {
-//                 color: theme.palette.common.white,
-//             },
-//         },
-//     },
-// }))(MenuItem);
+const UserMenu = withStyles(menuStyle)((props) => (
+    <StyledMenu
+        elevation={0}
+        getContentAnchorEl={null}
+        disableScrollLock={true}
+        anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right',
+        }}
+        transformOrigin={{
+            vertical: 'top',
+            horizontal: 'right',
+        }}
+        {...props}
+    />
+));
 
 const styles = (theme) => ({
     root: {
@@ -178,28 +198,39 @@ class NavbarComponent extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            anchorEl: null
+            repoAnchorEl: null,
+            profileAnchorEl: null
         }
     }
 
-    componentDidMount() {
+    getRepos = () => {
         API.get("/repos").then(response => {
             if (response.data.length > 0) {
                 this.props.setRepos(response.data)
                 this.props.setCurrentRepo(response.data[0])
             }
-        })
+        }).catch(() => { })
     }
 
-    handleMenuClick = (event) => {
-        this.setState({ anchorEl: event.currentTarget })
+    componentDidMount() {
+        this.getRepos()
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        if (!prevProps.isLogin && this.props.isLogin) {
+            this.getRepos()
+        }
+    }
+
+    handleRepoMenuOpen = (event) => {
+        this.setState({ repoAnchorEl: event.currentTarget })
     };
 
-    handleMenuClose = () => {
-        this.setState({ anchorEl: null });
+    handleRepoMenuClose = () => {
+        this.setState({ repoAnchorEl: null });
     };
 
-    handleMenuItemClick = (event) => {
+    handleRepoMenuItemClick = (event) => {
         let repoName = event.currentTarget.attributes["repo_name"].nodeValue
         for (let i = 0; i < this.props.repos.length; i++) {
             if (this.props.repos[i] === repoName) {
@@ -207,8 +238,42 @@ class NavbarComponent extends Component {
                 break
             }
         }
+        this.handleRepoMenuClose()
         this.props.history.push({
             pathname: "/tags",
+        })
+    }
+
+    handleProfileMenuOpen = (event) => {
+        this.setState({ profileAnchorEl: event.currentTarget })
+    };
+
+
+    handleProfileMenuClose = () => {
+        this.setState({ profileAnchorEl: null });
+    };
+
+
+    logout = () => {
+        API.post("/user/logout").then(response => {
+            this.props.toggleSnackbar(
+                "top",
+                "center",
+                "已退出登录",
+                "success"
+            );
+            Auth.Signout()
+            window.location.reload();
+            this.props.setLoginStatus(false);
+        }).catch(error => {
+            this.props.toggleSnackbar(
+                "top",
+                "center",
+                error.message,
+                "warning"
+            );
+        }).then(() => {
+            this.handleProfileMenuClose()
         })
     }
 
@@ -216,6 +281,7 @@ class NavbarComponent extends Component {
 
     render() {
         const { classes } = this.props
+        const profileMenuID = 'user-menu'
 
         const generateRepos = (repoList) => {
             let l = []
@@ -227,7 +293,7 @@ class NavbarComponent extends Component {
                     className = classes.repoMenu
                 }
                 l.push(
-                    <MenuItem className={className} onClick={this.handleMenuItemClick} repo_name={repoList[i]}>
+                    <MenuItem className={className} onClick={this.handleRepoMenuItemClick} repo_name={repoList[i]}>
                         <ListItemIcon>
                             <ClassRoundedIcon fontSize="small" />
                         </ListItemIcon>
@@ -264,29 +330,62 @@ class NavbarComponent extends Component {
                             />
                         </div> */}
                         <div>
-                            <Button
-                                aria-controls="customized-menu"
-                                aria-haspopup="true"
-                                variant="contained"
-                                size="small"
-                                onClick={this.handleMenuClick}
-                                startIcon={<StarRoundedIcon />}
-                                endIcon={<KeyboardArrowDownIcon />}
-                                className={classes.repo}
-                                disableRipple
-                            >
-                                {this.props.currentRepo !== "" ? this.props.currentRepo : '无仓库'}
-                            </Button>
-                            <StyledMenu
-                                id="customized-menu"
-                                anchorEl={this.state.anchorEl}
-                                keepMounted
-                                open={Boolean(this.state.anchorEl)}
-                                onClose={this.handleMenuClose}
-                            >
-                                {generateRepos(this.props.repos)}
-                            </StyledMenu>
+                            {this.props.isLogin === true ? (
+                                <div>
+                                    <Button
+                                        aria-controls="customized-menu"
+                                        aria-haspopup="true"
+                                        variant="contained"
+                                        size="small"
+                                        onClick={this.handleRepoMenuOpen}
+                                        startIcon={<StarRoundedIcon />}
+                                        endIcon={<KeyboardArrowDownIcon />}
+                                        className={classes.repo}
+                                        disableRipple
+                                    >
+                                        {this.props.currentRepo !== "" ? this.props.currentRepo : '无仓库'}
+                                    </Button>
+                                    <RepoMenu
+                                        id="repo-menu"
+                                        anchorEl={this.state.repoAnchorEl}
+                                        keepMounted
+                                        open={Boolean(this.state.repoAnchorEl)}
+                                        onClose={this.handleRepoMenuClose}
+                                    >
+                                        {generateRepos(this.props.repos)}
+                                    </RepoMenu>
+                                </div>
+                            ) : (<span style={{ fontSize: "1.2em", color: "#E5E9F0", fontWeight: "bold" }}>未登录</span>)}
                         </div>
+                        {this.props.isLogin ? (
+                            <div>
+                                <IconButton
+                                    edge="end"
+                                    aria-label="account of current user"
+                                    aria-controls={profileMenuID}
+                                    aria-haspopup="true"
+                                    onClick={this.handleProfileMenuOpen}
+                                    color="inherit"
+                                >
+                                    <AccountCircle style={{ fontSize: "1.2em", color: "#8AABCE" }} />
+                                </IconButton>
+                                <UserMenu
+                                    id={"user-menu"}
+                                    anchorEl={this.state.profileAnchorEl}
+                                    keepMounted
+                                    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                                    open={Boolean(this.state.profileAnchorEl)}
+                                    onClose={this.handleProfileMenuClose}
+                                >
+                                    <MenuItem onClick={this.logout}>
+                                        <ListItemIcon>
+                                            <ExitToApp fontSize="small" />
+                                        </ListItemIcon>
+                                        <ListItemText primary={"登出"} />
+                                    </MenuItem>
+                                </UserMenu>
+                            </div>
+                        ) : <div />}
                     </Toolbar>
                 </AppBar>
             </div>

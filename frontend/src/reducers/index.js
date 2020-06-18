@@ -1,5 +1,20 @@
 const vinkiApp = (state = [], action) => {
     switch (action.type) {
+        case 'TOGGLE_SNACKBAR':
+            return Object.assign({}, state, {
+                snackbar: Object.assign({}, state.snackbar, {
+                    toggle: !state.snackbar.toggle,
+                    vertical: action.vertical,
+                    horizontal: action.horizontal,
+                    msg: action.msg,
+                    color: action.color,
+                }),
+            });
+        case 'SET_LOGIN_STATUS':
+            return {
+                ...state,
+                isLogin: action.status,
+            }
         case 'SET_REPOS':
             return Object.assign({}, state, {
                 repo: Object.assign({}, state.repo, {

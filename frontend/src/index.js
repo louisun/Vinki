@@ -14,20 +14,27 @@ import {
 import { createStore } from 'redux';
 
 import App from './App';
-import InitSiteConfig from './middleware/Init';
+import {
+  InitConfig,
+  UpdateConfig,
+} from './middleware/Init';
 import vinkiApp from './reducers';
 import * as serviceWorker from './serviceWorker';
 
 // make app work offline and load faster
 serviceWorker.register();
 
+// 初始化配置
+const defaultConfig = InitConfig()
+
 let store = createStore(
   vinkiApp,
-  InitSiteConfig(),
+  defaultConfig,
   window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
 );
 
-// you can update site config here
+// 从服务端更新配置，并保存到全局状态中
+UpdateConfig(store)
 
 ReactDOM.render(
   <Provider store={store}>

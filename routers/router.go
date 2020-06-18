@@ -48,8 +48,8 @@ func InitRouter() *gin.Engine {
 		site := v1.Group("site")
 		{
 			site.GET("ping", controllers.Ping)
+			site.GET("config", middleware.RequireAuth(), controllers.GetSiteConfig)
 			// TODO 验证码
-			// TODO 站点全局配置
 		}
 
 		// 用户相关路由

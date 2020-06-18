@@ -1,4 +1,20 @@
 // Actions
+export const toggleSnackbar = (vertical, horizontal, msg, color) => {
+    return {
+        type: "TOGGLE_SNACKBAR",
+        vertical: vertical,
+        horizontal: horizontal,
+        msg: msg,
+        color: color
+    };
+};
+
+export const setLoginStatus = (status) => {
+    return {
+        type: 'SET_LOGIN_STATUS',
+        status: status,
+    };
+};
 
 export const setRepos = repos => {
     return {

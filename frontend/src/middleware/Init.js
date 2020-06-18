@@ -1,3 +1,6 @@
+import API from '../middleware/Api';
+import Auth from './Auth';
+
 var config = {
     // 0. 站点设置
     siteConfig: {
@@ -30,13 +33,6 @@ var config = {
                 hint: "rgba(0, 0, 0, 0.38)"
             },
         },
-        snackbar: {
-            toggle: false,
-            vertical: "top",
-            horizontal: "center",
-            msg: "",
-            color: ""
-        },
     },
     // 1. 仓库信息
     repo: {
@@ -52,9 +48,32 @@ var config = {
         subTags: [],         // 子标签
         articleList: [],     // 文章信息列表
     },
+    snackbar: {
+        toggle: false,
+        vertical: "top",
+        horizontal: "center",
+        msg: "",
+        color: ""
+    },
+    isLogin: false
 }
 
-const InitSiteConfig = () => {
+export function InitConfig() {
+    // 先要去本地缓存中查找相应信息
+    let user = Auth.GetUser()
+    if (user !== undefined && user.id !== 0) {
+        Auth.authenticate(user)
+    }
+    // 初始化全局登录状态（与Auth一致）
+    config.isLogin = Auth.Check()
     return config
 }
-export default InitSiteConfig
+
+export function UpdateConfig(store) {
+    API.get("/site/config").then(response => {
+        if (response.data !== undefined) {
+            // 更新登录状态
+            Auth.authenticate(response.data)
+        }
+    }).catch(error => { })
+}
