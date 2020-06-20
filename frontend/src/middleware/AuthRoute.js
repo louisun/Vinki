@@ -1,18 +1,20 @@
-import React from "react";
-import Auth from "./Auth"
+import React from 'react';
+
 import {
-    Route,
-    Redirect,
-  } from "react-router-dom";
+  Redirect,
+  Route,
+} from 'react-router-dom';
+
+import Auth from './Auth';
 
 function AuthRoute({ children, ...rest }) {
-    return (
-      <Route
-        {...rest}
-        render={({ location }) =>
-        Auth.Check(rest.isLogin) ? (
-            children
-          ) : (
+  return (
+    <Route
+      {...rest}
+      render={({ location }) =>
+        Auth.Check() ? (
+          children
+        ) : (
             <Redirect
               to={{
                 pathname: "/login",
@@ -20,9 +22,9 @@ function AuthRoute({ children, ...rest }) {
               }}
             />
           )
-        }
-      />
-    );
-  }
+      }
+    />
+  );
+}
 
 export default AuthRoute

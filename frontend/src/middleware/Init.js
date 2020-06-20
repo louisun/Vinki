@@ -61,7 +61,7 @@ var config = {
 export function InitConfig() {
     // 先要去本地缓存中查找相应信息
     let user = Auth.GetUser()
-    if (user !== undefined && user.id !== 0) {
+    if (user !== null && user.id !== 0) {
         Auth.authenticate(user)
     }
     // 初始化全局登录状态（与Auth一致）

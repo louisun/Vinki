@@ -15,7 +15,7 @@ const Auth = {
             return true;
         }
         // 缓存中有user信息，暂且视为已登录
-        if (localStorage.getItem("user") !== null) {
+        if (Auth.GetUser("user") !== null) {
             return Auth.GetUser().id !== 0;
         }
         return false

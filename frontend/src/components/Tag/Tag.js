@@ -27,6 +27,7 @@ import {
   setSecondTags,
   setSubTags,
   setTopTags,
+  toggleSnackbar,
 } from '../../actions';
 import API from '../../middleware/Api';
 import { lastOfArray } from '../../utils';
@@ -63,6 +64,9 @@ const mapDispatchToProps = (dispatch) => {
         setArticleList: (articleList) => {
             dispatch(setArticleList(articleList));
         },
+        toggleSnackbar: (vertical, horizontal, msg, color) => {
+            dispatch(toggleSnackbar(vertical, horizontal, msg, color));
+        }
     };
 };
 const styles = (theme) => ({
@@ -197,6 +201,13 @@ class TagsComponent extends Component {
                 this.props.setCurrentTopTag("");
                 this.props.setArticleList([]);
             }
+        }).catch(error => {
+            this.props.toggleSnackbar(
+                "top",
+                "center",
+                error.message,
+                "error"
+            );
         });
     }
     componentDidMount() {
@@ -239,13 +250,19 @@ class TagsComponent extends Component {
                     repoName: this.props.currentRepo,
                     tagName: this.props.currentTopTag
                 }
-            }).then(
-                (response) => {
-                    this.props.setSecondTags(response.data.SubTags);
-                    this.props.setSubTags([]);
-                    this.props.setArticleList(response.data.ArticleInfos);
-                }
-            );
+            }).then(response => {
+                this.props.setSecondTags(response.data.SubTags);
+                this.props.setSubTags([]);
+                this.props.setArticleList(response.data.ArticleInfos);
+            }
+            ).catch(error => {
+                this.props.toggleSnackbar(
+                    "top",
+                    "center",
+                    error.message,
+                    "error"
+                );
+            })
         } else {
             API.get("/tag", {
                 params: {
@@ -253,31 +270,35 @@ class TagsComponent extends Component {
                     repoName: this.props.currentRepo,
                     tagName: this.props.currentTopTag
                 }
-            }).then(
-                (response) => {
-                    this.props.setSecondTags(response.data.SubTags);
-                    this.props.setArticleList(response.data.ArticleInfos);
-                }
-            );
+            }).then(response => {
+                this.props.setSecondTags(response.data.SubTags);
+                this.props.setArticleList(response.data.ArticleInfos);
+            }
+            ).catch(error => {
+                this.props.toggleSnackbar(
+                    "top",
+                    "center",
+                    error.message,
+                    "error"
+                );
+            })
         }
     };
 
     handleTagClick = (event, tag, type) => {
         this.setState((state) => ({ flat: false }));
         this.props.setCurrentTag(tag);
-        API.get(`/tag`, {
+        API.get("/tag", {
             params: {
                 flat: false,
                 repoName: this.props.currentRepo,
                 tagName: tag,
             }
-        }).then((response) => {
+        }).then(response => {
             if (response.data == null) {
-                // TODO error message
-                return
+                return;
             }
             if (type === "top") {
-                console.log(response.data)
                 this.props.setCurrentTopTag(tag);
                 if (response.data.SubTags) {
                     this.props.setSecondTags(response.data.SubTags);
@@ -291,6 +312,13 @@ class TagsComponent extends Component {
                 }
             }
             this.props.setArticleList(response.data.ArticleInfos);
+        }).catch(error => {
+            this.props.toggleSnackbar(
+                "top",
+                "center",
+                error.message,
+                "error"
+            );
         });
     };
 

@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { useSelector } from 'react-redux';
 import {
+  Redirect,
   Route,
   Switch,
 } from 'react-router-dom';
@@ -17,6 +17,7 @@ import MessageBar from './components/Common/Snackbar';
 import Login from './components/Login/Login';
 import Navbar from './components/Navbar/Navbar';
 import Tags from './components/Tag/Tag';
+import Auth from './middleware/Auth';
 import AuthRoute from './middleware/AuthRoute';
 
 const useStyles = makeStyles(() => ({
@@ -36,7 +37,6 @@ const useStyles = makeStyles(() => ({
 
 export default function App() {
     const classes = useStyles();
-    const isLogin = useSelector(state => state.isLogin);
     return (
         <React.Fragment>
             <div id="container" className={classes.container}>
@@ -52,9 +52,15 @@ export default function App() {
                             <Login />
                         </Route>
                         <Route path="/article/:repoName/:tagName/:articleName" render={(props) => (
-                            <Article key={`${props.match.params.repoName}-${props.match.params.tagName}-${props.match.params.articleName}`} />
+                            Auth.Check() ?
+                                (<Article key={`${props.match.params.repoName}-${props.match.params.tagName}-${props.match.params.articleName}`} />) :
+                                (<Redirect
+                                    to={{
+                                        pathname: "/login",
+                                    }}
+                                />)
                         )} />
-                        <AuthRoute path="/(|home|tags)" isLogin={isLogin}>
+                        <AuthRoute path="/(|home|tags)">
                             <Tags />
                         </AuthRoute>
                         <Route path="*">

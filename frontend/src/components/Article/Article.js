@@ -31,6 +31,7 @@ import {
   setArticleList,
   setCurrentRepo,
   setCurrentTag,
+  toggleSnackbar,
 } from '../../actions';
 import cardImage from '../../assets/img/card.png';
 import API from '../../middleware/Api';
@@ -59,6 +60,9 @@ const mapDispatchToProps = dispatch => {
         },
         setArticleList: articleList => {
             dispatch(setArticleList(articleList))
+        },
+        toggleSnackbar: (vertical, horizontal, msg, color) => {
+            dispatch(toggleSnackbar(vertical, horizontal, msg, color));
         },
     }
 }
@@ -323,7 +327,14 @@ class ArticleComponent extends Component {
                 this.setState({ article: response.data })
                 document.title = this.state.article.Title
             }
-        })
+        }).catch(error => {
+            this.props.toggleSnackbar(
+                "top",
+                "center",
+                error.message,
+                "error"
+            );
+        });
         if (this.props.currentRepo === "" || this.props.currentRepo !== this.props.match.params.repoName) {
             this.props.setCurrentRepo(this.props.match.params.repoName)
         }
@@ -336,7 +347,14 @@ class ArticleComponent extends Component {
             }).then(response => {
                 this.props.setCurrentTag(response.data.Name)
                 this.props.setArticleList(response.data.ArticleInfos)
-            })
+            }).catch(error => {
+                this.props.toggleSnackbar(
+                    "top",
+                    "center",
+                    error.message,
+                    "error"
+                );
+            });
         }
 
         this.tocTimer = setTimeout(this.updateTocHeading.bind(this), 300)

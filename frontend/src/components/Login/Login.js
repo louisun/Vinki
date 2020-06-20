@@ -99,20 +99,18 @@ export default function Login() {
     API.post("/user/login", {
       userName: email,
       password: password,
+    }).then(response => {
+      setLoading(false);
+      // 本地保存用户登录状态和数据
+      Auth.authenticate(response.data);
+      // 全局状态
+      SetLoginStatus(true);
+      history.push("/home")
+      ToggleSnackbar("top", "center", "登录成功", "success");
+    }).catch(error => {
+      setLoading(false);
+      ToggleSnackbar("top", "center", error.message, "warning");
     })
-      .then(response => {
-        setLoading(false);
-        // 本地保存用户登录状态和数据
-        Auth.authenticate(response.data);
-        // 全局状态
-        SetLoginStatus(true);
-        history.push("/home")
-        ToggleSnackbar("top", "center", "登录成功", "success");
-      })
-      .catch(error => {
-        setLoading(false);
-        ToggleSnackbar("top", "center", error.message, "warning");
-      })
   }
 
   return (

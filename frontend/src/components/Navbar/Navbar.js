@@ -7,11 +7,22 @@ import {
   withRouter,
 } from 'react-router-dom';
 
-import { IconButton } from '@material-ui/core';
+import { faMarkdown } from '@fortawesome/free-brands-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  Backdrop,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Dialog,
+  IconButton,
+  List,
+} from '@material-ui/core';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
-// import IconButton from '@material-ui/core/IconButton';
-// import InputBase from '@material-ui/core/InputBase';
+import InputBase from '@material-ui/core/InputBase';
+import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import StyledMenu from '@material-ui/core/Menu';
@@ -27,14 +38,20 @@ import AccountCircle from '@material-ui/icons/AccountCircle';
 import ClassRoundedIcon from '@material-ui/icons/ClassRounded';
 import ExitToApp from '@material-ui/icons/ExitToApp';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
-// import MenuIcon from '@material-ui/icons/Menu';
-// import SearchIcon from '@material-ui/icons/Search';
+import SearchIcon from '@material-ui/icons/Search';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
+import SyncIcon from '@material-ui/icons/Sync';
 
 import {
+  setArticleList,
   setCurrentRepo,
+  setCurrentTag,
+  setCurrentTopTag,
   setLoginStatus,
   setRepos,
+  setSecondTags,
+  setSubTags,
+  setTopTags,
   toggleSnackbar,
 } from '../../actions';
 import API from '../../middleware/Api';
@@ -61,6 +78,24 @@ const mapDispatchToProps = dispatch => {
         },
         setLoginStatus: status => {
             dispatch(setLoginStatus(status));
+        },
+        setCurrentTopTag: (currentTopTag) => {
+            dispatch(setCurrentTopTag(currentTopTag));
+        },
+        setCurrentTag: (currentTag) => {
+            dispatch(setCurrentTag(currentTag));
+        },
+        setTopTags: (topTags) => {
+            dispatch(setTopTags(topTags));
+        },
+        setSecondTags: (secondTags) => {
+            dispatch(setSecondTags(secondTags));
+        },
+        setSubTags: (subTags) => {
+            dispatch(setSubTags(subTags));
+        },
+        setArticleList: (articleList) => {
+            dispatch(setArticleList(articleList));
         },
     }
 }
@@ -116,6 +151,10 @@ const styles = (theme) => ({
         flexGrow: 1,
         height: "50px",
     },
+    backdrop: {
+        zIndex: theme.zIndex.drawer + 1,
+        color: '#fff',
+    },
     menuButton: {
         marginRight: theme.spacing(2),
     },
@@ -162,7 +201,7 @@ const styles = (theme) => ({
             marginLeft: theme.spacing(1),
             width: 'auto',
         },
-        [theme.breakpoints.down('sm')]: {
+        [theme.breakpoints.down('xs')]: {
             display: 'none',
         },
     },
@@ -185,11 +224,43 @@ const styles = (theme) => ({
         transition: theme.transitions.create('width'),
         width: '100%',
         [theme.breakpoints.up('sm')]: {
-            width: '12ch',
-            '&:focus': {
-                width: '20ch',
-            },
+            width: '20ch',
         },
+    },
+    searchCard: {
+        minWidth: "500px",
+        padding: "20px",
+        overflow: "auto",
+    },
+    chips: {
+        display: "flex",
+        justifyContent: "left",
+        flexWrap: "wrap",
+        padding: theme.spacing(0.5),
+    },
+    tagChip: {
+        margin: theme.spacing(1),
+        backgroundColor: "#E5E9F0",
+        color: "#4C566A",
+        fontSize: "15px",
+        fontFamily: "Inter",
+        "&:hover": {
+            backgroundColor: "#86C1D3",
+            color: "#FFFFFF",
+            textShadow: "0 0 .9px #FFF, 0 0 .9px #FFF",
+        },
+        "&:focus": {
+            backgroundColor: "#86C1D3",
+            color: "#FFFFFF",
+            textShadow: "0 0 .9px #FFF, 0 0 .9px #FFF",
+        },
+        // fontWeight: "bold",
+    },
+    articleChip: {
+        backgroundColor: "#86C1D3",
+        color: "#FFFFFF",
+        textShadow: "0 0 .9px #FFF, 0 0 .9px #FFF",
+        fontFamily: "Inter",
     },
 
 });
@@ -198,8 +269,14 @@ class NavbarComponent extends Component {
     constructor(props) {
         super(props)
         this.state = {
+            user: null,
             repoAnchorEl: null,
-            profileAnchorEl: null
+            profileAnchorEl: null,
+            loadingStatus: false,
+            searchDialog: false,
+            searchKeywords: "",
+            searchTagsResult: null,
+            searchArticlesResult: null,
         }
     }
 
@@ -213,6 +290,7 @@ class NavbarComponent extends Component {
     }
 
     componentDidMount() {
+        this.setState({ user: Auth.GetUser() })
         this.getRepos()
     }
 
@@ -238,6 +316,7 @@ class NavbarComponent extends Component {
                 break
             }
         }
+        this.props.setArticleList([])
         this.handleRepoMenuClose()
         this.props.history.push({
             pathname: "/tags",
@@ -253,6 +332,61 @@ class NavbarComponent extends Component {
         this.setState({ profileAnchorEl: null });
     };
 
+    handleLoadingOpen = () => {
+        this.setState({ loadingStatus: true })
+    }
+
+    handleLoadingClose = () => {
+        this.setState({ loadingStatus: false })
+    }
+
+    handleSearchDialogOpen = () => {
+        this.setState({ searchDialog: true })
+    }
+
+    handleSearchDialogClose = () => {
+        this.setState({ searchDialog: false })
+    }
+
+    onSearch = (e) => {
+        if (e.key === 'Enter' && e.target.value !== "") {
+            this.setState({ searchKeywords: e.target.value })
+            API.get("/search", {
+                params: {
+                    type: "tag",
+                    repo: this.props.currentRepo,
+                    keyword: e.target.value
+                }
+            }).then(response => {
+                this.setState({ searchTagsResult: response.data })
+            }).catch(error => {
+                this.props.toggleSnackbar(
+                    "top",
+                    "center",
+                    error.message,
+                    "error"
+                );
+            })
+            API.get("/search", {
+                params: {
+                    type: "article",
+                    repo: this.props.currentRepo,
+                    keyword: e.target.value
+                }
+            }).then(response => {
+                this.setState({ searchArticlesResult: response.data })
+            }).catch(error => {
+                this.props.toggleSnackbar(
+                    "top",
+                    "center",
+                    error.message,
+                    "error"
+                );
+            })
+            this.handleSearchDialogOpen()
+            e.target.value = ""
+        }
+    }
 
     logout = () => {
         API.post("/user/logout").then(response => {
@@ -270,14 +404,112 @@ class NavbarComponent extends Component {
                 "top",
                 "center",
                 error.message,
-                "warning"
+                "error"
             );
         }).then(() => {
             this.handleProfileMenuClose()
         })
     }
 
+    refresh = () => {
+        this.handleLoadingOpen();
+        API.post("/admin/refresh/all").then(response => {
+            this.handleProfileMenuClose()
+            this.handleLoadingClose()
+            this.props.toggleSnackbar(
+                "top",
+                "center",
+                response.rawData.msg,
+                "success"
+            );
+            window.location.reload()
+        }).catch(error => {
+            this.handleProfileMenuClose()
+            this.handleLoadingClose()
+            this.props.toggleSnackbar(
+                "top",
+                "center",
+                error.message,
+                "error"
+            );
+        })
+    }
 
+    handleTagClick = (event, tag) => {
+        this.props.setCurrentTag(tag)
+        API.get("/tag", {
+            params: {
+                flat: false,
+                repoName: this.props.currentRepo,
+                tagName: tag
+            }
+        }).then(response => {
+            if (response.data == null) {
+                return;
+            }
+            if (tag.split("--").length === 1) {
+                this.props.setCurrentTopTag(tag);
+                if (response.data.SubTags) {
+                    this.props.setSecondTags(response.data.SubTags);
+                } else {
+                    this.props.setSecondTags([]);
+                }
+                this.props.setSubTags([])
+            } else if (tag.split("--").length > 1) {
+                this.props.setCurrentTopTag(tag.split("--")[0]);
+                this.props.setSecondTags([tag]);
+                this.props.setSubTags(response.data.SubTags);
+            }
+            this.props.setArticleList(response.data.ArticleInfos)
+            this.handleSearchDialogClose()
+            this.props.history.push({
+                pathname: "/tags",
+            })
+        }).catch(error => {
+            this.props.toggleSnackbar(
+                "top",
+                "center",
+                error.message,
+                "error"
+            );
+        });
+    }
+
+    handleArticleClick = (event, tag, articleName) => {
+        this.props.setCurrentTag(tag);
+        API.get("/tag", {
+            params: {
+                flat: false,
+                repoName: this.props.currentRepo,
+                tagName: tag
+            }
+        }).then(response => {
+            if (response.data == null) {
+                return;
+            }
+            if (tag.split("--").length === 1) {
+                this.props.setCurrentTopTag(tag);
+                if (response.data.SubTags) {
+                    this.props.setSecondTags(response.data.SubTags);
+                } else {
+                    this.props.setSecondTags([]);
+                }
+                this.props.setSubTags([])
+            } else if (tag.split("--").length > 1) {
+                this.props.setSubTags(response.data.SubTags);
+            }
+            this.props.setArticleList(response.data.ArticleInfos)
+            this.handleSearchDialogClose()
+            this.props.history.push(`/article/${this.props.currentRepo}/${tag}/${articleName}`);
+        }).catch(error => {
+            this.props.toggleSnackbar(
+                "top",
+                "center",
+                error.message,
+                "error"
+            );
+        });
+    };
 
     render() {
         const { classes } = this.props
@@ -303,92 +535,179 @@ class NavbarComponent extends Component {
             }
             return l
         }
+
+        const generateSearchTags = (tagList) => {
+            let l = [];
+            for (let i = 0; i < tagList.length; i++) {
+                l.push(
+                    <Chip
+                        key={"st" + i}
+                        label={tagList[i].split("--").join(" | ")}
+                        className={classes.tagChip}
+                        clickable={true}
+                        onClick={(event) => this.handleTagClick(event, tagList[i])}
+                    />
+                );
+            }
+            return l;
+        }
+
+
+        const generateSearchArticles = (articleList) => {
+            let l = [];
+            for (let i = 0; i < articleList.length; i++) {
+                l.push(
+                    <ListItem
+                        button={true}
+                        onClick={(event) => {
+                            this.handleArticleClick(event, articleList[i].tag, articleList[i].article);
+                        }}
+                    >
+                        <ListItemIcon>
+                            <FontAwesomeIcon
+                                icon={faMarkdown}
+                                style={{ color: "#4E5668", fontSize: "1.3em" }}
+                            />
+                        </ListItemIcon>
+                        <ListItemText
+                            primary={articleList[i].article}
+                            style={{
+                                color: "#4C566A",
+                                textShadow: "0 0 .9px #E5E9F1, 0 0 .9px #E5E9F1",
+                            }}
+                            primaryTypographyProps={{ variant: "subtitle1" }}
+                        />
+                        <Chip
+                            key={"at" + i}
+                            label={articleList[i].tag.split("--").join(" | ")}
+                            className={classes.articleChip}
+                        />
+                    </ListItem>
+                );
+            }
+            return <List> {l} </List>;
+        };
+
         return (
-            <div className={classes.root}>
-                <AppBar position="fixed" className={classes.appbar}>
-                    <Toolbar variant="dense">
-                        {/* <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
+            <div>
+                <div className={classes.root}>
+                    <AppBar position="fixed" className={classes.appbar}>
+                        <Toolbar variant="dense">
+                            {/* <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
                             <MenuIcon />
                         </IconButton> */}
-                        <Link to="/tags" style={{ textDecoration: "none", }}>
-                            <Typography variant="h4" className={classes.brand}>
-                                Vinki
+                            <Link to="/tags" style={{ textDecoration: "none", }}>
+                                <Typography variant="h4" className={classes.brand}>
+                                    Vinki
                             </Typography>
-                        </Link>
-                        <div className={classes.grow} />
-                        {/* <div className={classes.search}>
-                            <div className={classes.searchIcon}>
-                                <SearchIcon />
-                            </div>
-                            <InputBase
-                                placeholder="搜索"
-                                classes={{
-                                    root: classes.inputRoot,
-                                    input: classes.inputInput,
-                                }}
-                                inputProps={{ 'aria-label': 'search' }}
-                            />
-                        </div> */}
-                        <div>
-                            {this.props.isLogin === true ? (
-                                <div>
-                                    <Button
-                                        aria-controls="customized-menu"
-                                        aria-haspopup="true"
-                                        variant="contained"
-                                        size="small"
-                                        onClick={this.handleRepoMenuOpen}
-                                        startIcon={<StarRoundedIcon />}
-                                        endIcon={<KeyboardArrowDownIcon />}
-                                        className={classes.repo}
-                                        disableRipple
-                                    >
-                                        {this.props.currentRepo !== "" ? this.props.currentRepo : '无仓库'}
-                                    </Button>
-                                    <RepoMenu
-                                        id="repo-menu"
-                                        anchorEl={this.state.repoAnchorEl}
-                                        keepMounted
-                                        open={Boolean(this.state.repoAnchorEl)}
-                                        onClose={this.handleRepoMenuClose}
-                                    >
-                                        {generateRepos(this.props.repos)}
-                                    </RepoMenu>
+                            </Link>
+                            <div className={classes.grow} />
+                            {(this.state.user != null && this.state.user.IsAdmin && this.props.currentRepo !== "") ? (
+                                <div className={classes.search}>
+                                    <div className={classes.searchIcon}>
+                                        <SearchIcon />
+                                    </div>
+                                    <InputBase
+                                        placeholder="搜索"
+                                        classes={{
+                                            root: classes.inputRoot,
+                                            input: classes.inputInput,
+                                        }}
+                                        inputProps={{ 'aria-label': 'search' }}
+                                        onKeyPress={this.onSearch}
+                                    />
                                 </div>
-                            ) : (<span style={{ fontSize: "1.2em", color: "#E5E9F0", fontWeight: "bold" }}>未登录</span>)}
-                        </div>
-                        {this.props.isLogin ? (
+
+                            ) : (<div />)}
                             <div>
-                                <IconButton
-                                    edge="end"
-                                    aria-label="account of current user"
-                                    aria-controls={profileMenuID}
-                                    aria-haspopup="true"
-                                    onClick={this.handleProfileMenuOpen}
-                                    color="inherit"
-                                >
-                                    <AccountCircle style={{ fontSize: "1.2em", color: "#8AABCE" }} />
-                                </IconButton>
-                                <UserMenu
-                                    id={"user-menu"}
-                                    anchorEl={this.state.profileAnchorEl}
-                                    keepMounted
-                                    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-                                    open={Boolean(this.state.profileAnchorEl)}
-                                    onClose={this.handleProfileMenuClose}
-                                >
-                                    <MenuItem onClick={this.logout}>
-                                        <ListItemIcon>
-                                            <ExitToApp fontSize="small" />
-                                        </ListItemIcon>
-                                        <ListItemText primary={"登出"} />
-                                    </MenuItem>
-                                </UserMenu>
+                                {this.props.isLogin === true ? (
+                                    <div>
+                                        <Button
+                                            aria-controls="customized-menu"
+                                            aria-haspopup="true"
+                                            variant="contained"
+                                            size="small"
+                                            onClick={this.handleRepoMenuOpen}
+                                            startIcon={<StarRoundedIcon />}
+                                            endIcon={<KeyboardArrowDownIcon />}
+                                            className={classes.repo}
+                                            disableRipple
+                                        >
+                                            {this.props.currentRepo !== "" ? this.props.currentRepo : '无仓库'}
+                                        </Button>
+                                        <RepoMenu
+                                            id="repo-menu"
+                                            anchorEl={this.state.repoAnchorEl}
+                                            keepMounted
+                                            open={Boolean(this.state.repoAnchorEl)}
+                                            onClose={this.handleRepoMenuClose}
+                                        >
+                                            {generateRepos(this.props.repos)}
+                                        </RepoMenu>
+                                    </div>
+                                ) : (<span style={{ fontSize: "1.2em", color: "#E5E9F0", fontWeight: "bold" }}>未登录</span>)}
                             </div>
-                        ) : <div />}
-                    </Toolbar>
-                </AppBar>
-            </div>
+                            {this.props.isLogin ? (
+                                <div>
+                                    <IconButton
+                                        edge="end"
+                                        aria-label="account of current user"
+                                        aria-controls={profileMenuID}
+                                        aria-haspopup="true"
+                                        onClick={this.handleProfileMenuOpen}
+                                        color="inherit"
+                                    >
+                                        <AccountCircle style={{ fontSize: "1.2em", color: "#8AABCE" }} />
+                                    </IconButton>
+                                    <UserMenu
+                                        id={"user-menu"}
+                                        anchorEl={this.state.profileAnchorEl}
+                                        keepMounted
+                                        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                                        open={Boolean(this.state.profileAnchorEl)}
+                                        onClose={this.handleProfileMenuClose}
+                                    >
+                                        {(this.state.user != null && this.state.user.IsAdmin) ? (
+                                            <MenuItem onClick={this.refresh}>
+                                                <ListItemIcon>
+                                                    <SyncIcon fontSize="small" />
+                                                </ListItemIcon>
+                                                <ListItemText primary={"更新仓库"} />
+                                            </MenuItem>
+                                        ) : (<div />)}
+                                        <MenuItem onClick={this.logout}>
+                                            <ListItemIcon>
+                                                <ExitToApp fontSize="small" />
+                                            </ListItemIcon>
+                                            <ListItemText primary={"登出"} />
+                                        </MenuItem>
+                                    </UserMenu>
+                                </div>
+                            ) : <div />}
+                        </Toolbar>
+                    </AppBar>
+                </div>
+                <Backdrop className={classes.backdrop} open={this.state.loadingStatus}>
+                    <CircularProgress color="inherit" />
+                </Backdrop>
+                <Dialog open={this.state.searchDialog} onClose={this.handleSearchDialogClose} aria-labelledby="form-dialog-title">
+                    <Card className={classes.searchCard}>
+                        <CardContent>
+                            <Typography variant="body2" color="textSecondary" component="p">搜索 {this.state.searchKeywords} 结果</Typography>
+                        </CardContent>
+                        {this.state.searchTagsResult !== null ? (
+                            <div className={classes.chips}>
+                                {generateSearchTags(this.state.searchTagsResult)}
+                            </div>
+                        ) : (<div />)}
+                        {this.state.searchArticlesResult !== null ? (
+                            <div>
+                                {generateSearchArticles(this.state.searchArticlesResult)}
+                            </div>
+                        ) : (<div />)}
+                    </Card>
+                </Dialog>
+            </div >
         )
     }
 }
