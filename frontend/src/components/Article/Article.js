@@ -143,6 +143,16 @@ const styles = (theme) => ({
             outline: '1px solid slategrey',
         }
     },
+    tocSelected: {
+        backgroundColor: "#E9EAEE !important",
+        // borderLeft: "4px #80B2C3 solid !important",
+        // "&:hover": {
+        //     borderLeft: "4px #80B2C3 solid !important",
+        // },
+    },
+    tocTextSelected: {
+        fontWeight: "bold !important",
+    },
     tocH1Item: {
         paddingTop: "4px",
         paddingBottom: "2px",
@@ -164,6 +174,7 @@ const styles = (theme) => ({
         paddingTop: "4px",
         paddingBottom: "2px",
         borderLeft: "4px #96bb78 solid",
+        // borderBottom: "1px black dashed",
         "&:hover": {
             borderLeft: "4px #7AA05B solid",
         },
@@ -171,34 +182,39 @@ const styles = (theme) => ({
     tocH4Item: {
         paddingTop: "4px",
         paddingBottom: "2px",
+        paddingLeft: "30px",
         borderLeft: "4px #d8bb7d solid",
         "&:hover": {
             borderLeft: "4px #d3a748 solid",
         },
     },
+    tocTextCommon: {
+        color: "#4C566A", textShadow: "0 0 .9px #E5E9F1, 0 0 .9px #E5E9F1",
+    },
     tocH1Text: {
         fontFamily: "Inter",
-        color: "#2E3640 !important",
+        color: "#2E3640",
         fontSize: "1.2em",
     },
     tocH2Text: {
         fontFamily: "Inter",
-        color: "#364C65 !important",
+        color: "#364C65",
         fontSize: "1.1em",
-        fontWeight: "500 !important",
+        fontWeight: "500",
     },
     tocH3Text: {
         fontFamily: "Inter",
-        color: "#4E5668 !important",
+        color: "#4E5668",
         fontSize: "1.0em",
-        fontWeight: "400 !important",
+        fontWeight: "400",
     },
     tocH4Text: {
-        textIndent: "1em",
-        color: "#4E5668 !important",
+        width: "200px",
+        // textIndent: "1em",
+        color: "#4E5668",
         fontFamily: "Inter",
         fontSize: "0.9em",
-        fontWeight: "350 !important",
+        fontWeight: "350",
     },
     bottomBar: {
         position: "fixed",
@@ -310,6 +326,7 @@ class ArticleComponent extends Component {
             article: {},
             headings: [], // 用来存储目录结构
             tocMenu: false,
+            tocIndex: 0,
         }
         this.tocTimer = null
     }
@@ -493,7 +510,7 @@ class ArticleComponent extends Component {
             for (let i = 0; i < articleList.length; i++) {
                 if (articleList[i] === this.props.match.params.articleName) {
                     l.push(
-                        <ListItem button={true} style={{ backgroundColor: "#F5F5F5" }}
+                        <ListItem button={true} style={{ backgroundColor: "#F5F5F5" }} key={"a_al" + i}
                             onClick={(event) => {
                                 this.handleArticleClick(event, articleList[i])
                             }}>
@@ -507,7 +524,7 @@ class ArticleComponent extends Component {
 
                 } else {
                     l.push(
-                        <ListItem button={true} onClick={(event) => {
+                        <ListItem button={true} key={"a_article_list" + i} onClick={(event) => {
                             this.handleArticleClick(event, articleList[i])
                         }}>
                             <ListItemText
@@ -540,11 +557,17 @@ class ArticleComponent extends Component {
                     itemClass = classes.tocH4Item
                     textClass = classes.tocH4Text
                 }
+                textClass = textClass + ' ' + classes.tocTextCommon
+                if (this.state.tocIndex === i) {
+                    itemClass = itemClass + ' ' + classes.tocSelected
+                    textClass = textClass + ' ' + classes.tocTextSelected
+                }
                 l.push(
-                    <ListItem button={true} onClick={(event) => {
+                    <ListItem button={true} disableRipple key={"a_toc" + i} onClick={(event) => {
+                        this.setState({ tocIndex: i })
                         this.scrollToHeading(itemList[i], false)
                     }} className={itemClass}>
-                        <span style={{ color: "#4C566A", textShadow: "0 0 .9px #E5E9F1, 0 0 .9px #E5E9F1", }} className={textClass}> {itemList[i].text} </span>
+                        <span className={textClass}> {itemList[i].text} </span>
                     </ListItem>,
                 )
             }
@@ -570,7 +593,7 @@ class ArticleComponent extends Component {
                     textClass = classes.tocH4TextBottom
                 }
                 l.push(
-                    <ListItem button={true} onClick={(event) => {
+                    <ListItem button={true} key={"a_toc_bottom" + i} onClick={(event) => {
                         this.scrollToHeading(itemList[i], true)
                     }} className={itemClass}>
                         <span className={textClass}> {itemList[i].text} </span>
@@ -611,7 +634,7 @@ class ArticleComponent extends Component {
 
                 <div className={classes.mid}  >
                     <div className={classes.midWrapper} >
-                        <div class="markdown-body" ref={(ref) => { this.scroll = ref }}>
+                        <div className="markdown-body" ref={(ref) => { this.scroll = ref }}>
                             {isEmptyObject(this.state.article) ? (
                                 <div>
                                     <Skeleton animation="wave" />

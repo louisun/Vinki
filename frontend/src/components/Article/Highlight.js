@@ -62,7 +62,7 @@ class Highlight extends Component {
     render() {
         const { content } = this.props;
         return (
-            <div ref={this.nodeRef} dangerouslySetInnerHTML={{ __html: content }} class="markdown-content" />
+            <div ref={this.nodeRef} dangerouslySetInnerHTML={{ __html: content }} className="markdown-content" />
         );
     }
 }

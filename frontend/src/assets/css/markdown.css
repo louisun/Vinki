@@ -618,7 +618,9 @@
 .markdown-body img {
   background-color: #fff;
   box-sizing: content-box;
-  max-width: 100%;
+  max-width: 600px;
+  display: block;
+  margin: 0 auto;
 }
 
 .markdown-body img[align="right"] {

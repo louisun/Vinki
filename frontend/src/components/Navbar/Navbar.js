@@ -316,6 +316,9 @@ class NavbarComponent extends Component {
                 break
             }
         }
+        this.props.setTopTags([])
+        this.props.setSecondTags([])
+        this.props.setSubTags([])
         this.props.setArticleList([])
         this.handleRepoMenuClose()
         this.props.history.push({
@@ -525,7 +528,7 @@ class NavbarComponent extends Component {
                     className = classes.repoMenu
                 }
                 l.push(
-                    <MenuItem className={className} onClick={this.handleRepoMenuItemClick} repo_name={repoList[i]}>
+                    <MenuItem className={className} onClick={this.handleRepoMenuItemClick} repo_name={repoList[i]} key={"nav_repo" + i}>
                         <ListItemIcon>
                             <ClassRoundedIcon fontSize="small" />
                         </ListItemIcon>
@@ -541,7 +544,7 @@ class NavbarComponent extends Component {
             for (let i = 0; i < tagList.length; i++) {
                 l.push(
                     <Chip
-                        key={"st" + i}
+                        key={"nav_search_tag" + i}
                         label={tagList[i].split("--").join(" | ")}
                         className={classes.tagChip}
                         clickable={true}
@@ -578,7 +581,7 @@ class NavbarComponent extends Component {
                             primaryTypographyProps={{ variant: "subtitle1" }}
                         />
                         <Chip
-                            key={"at" + i}
+                            key={"nav_search_article_tag" + i}
                             label={articleList[i].tag.split("--").join(" | ")}
                             className={classes.articleChip}
                         />

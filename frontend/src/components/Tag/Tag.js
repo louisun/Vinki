@@ -344,7 +344,7 @@ class TagsComponent extends Component {
                 }
                 l.push(
                     <Chip
-                        key={i}
+                        key={"tag_chip" + i}
                         label={lastOfArray(tagList[i].split("--"))}
                         className={className}
                         clickable={true}
@@ -361,6 +361,7 @@ class TagsComponent extends Component {
                 l.push(
                     <ListItem
                         button={true}
+                        key={"tag_article_list" + i}
                         onClick={(event) => {
                             this.handleArticleClick(event, articleList[i]);
                         }}
