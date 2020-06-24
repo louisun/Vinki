@@ -127,5 +127,5 @@ repositories:
 docker run -d --name vinki -p 6166:6166 \
 	-v /Users/dog/vinki:/vinki/repository \
 	-v /Users/dog/.vinki/conf:/vinki/conf \
-	renzo/vinki
+	louisun/vinki:latest
 ```
