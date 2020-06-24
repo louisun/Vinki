@@ -1,3 +1,5 @@
+echo "Usage: $0 [-a] [-b] [-d]" 1>&2;
+
 REPO=$(cd $(dirname $0); pwd)
 COMMIT_SHA=$(git rev-parse --short HEAD)
 
@@ -37,8 +39,8 @@ buildBinary () {
   go build -a -o vinki
 }
 
-usage() {
-  echo "Usage: $0 [-a] [-b]" 1>&2;
+uage() {
+  echo "Usage: $0 [-a] [-b] [-d]" 1>&2;
   exit 1;
 }
 
