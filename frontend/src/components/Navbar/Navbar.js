@@ -294,9 +294,12 @@ class NavbarComponent extends Component {
         this.getRepos()
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (!prevProps.isLogin && this.props.isLogin) {
+    componentWillReceiveProps = (nextProps) => {
+        this.setState({ user: Auth.GetUser() })
+        console.log(this.state.user)
+        if (!this.props.isLogin && nextProps.isLogin) {
             this.getRepos()
+            console.log(this.state.user)
         }
     }
 
@@ -400,8 +403,8 @@ class NavbarComponent extends Component {
                 "success"
             );
             Auth.Signout()
-            window.location.reload();
             this.props.setLoginStatus(false);
+            window.location.reload();
         }).catch(error => {
             this.props.toggleSnackbar(
                 "top",
@@ -605,7 +608,7 @@ class NavbarComponent extends Component {
                             </Typography>
                             </Link>
                             <div className={classes.grow} />
-                            {(this.state.user != null && this.state.user.IsAdmin && this.props.currentRepo !== "") ? (
+                            {(this.state.user != null && this.state.user.is_admin && this.props.currentRepo !== "") ? (
                                 <div className={classes.search}>
                                     <div className={classes.searchIcon}>
                                         <SearchIcon />
@@ -670,7 +673,7 @@ class NavbarComponent extends Component {
                                         open={Boolean(this.state.profileAnchorEl)}
                                         onClose={this.handleProfileMenuClose}
                                     >
-                                        {(this.state.user != null && this.state.user.IsAdmin) ? (
+                                        {(this.state.user != null && this.state.user.is_admin) ? (
                                             <MenuItem onClick={this.refresh}>
                                                 <ListItemIcon>
                                                     <SyncIcon fontSize="small" />

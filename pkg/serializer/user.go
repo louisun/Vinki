@@ -22,7 +22,7 @@ func GetUnauthorizedResponse() Response {
 	}
 }
 
-func CreateUserResponse(user models.User) Response {
+func CreateUserResponse(user *models.User) Response {
 	data := UserDTO{
 		ID:       utils.GenerateHash(user.ID, utils.UserID, conf.GlobalConfig.System.HashIDSalt),
 		Email:    user.Email,

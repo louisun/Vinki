@@ -82,7 +82,7 @@ func (service *UserLoginService) Login(c *gin.Context) serializer.Response {
 	session.SetSession(c, map[string]interface{}{
 		"user_id": user.ID,
 	})
-	return serializer.CreateUserResponse(user)
+	return serializer.CreateUserResponse(&user)
 }
 
 // Logout 用户登出

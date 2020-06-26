@@ -107,6 +107,7 @@ export default function Login() {
       SetLoginStatus(true);
       history.push("/home")
       ToggleSnackbar("top", "center", "登录成功", "success");
+      window.location.reload();
     }).catch(error => {
       setLoading(false);
       ToggleSnackbar("top", "center", error.message, "warning");

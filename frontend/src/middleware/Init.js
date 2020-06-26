@@ -55,7 +55,8 @@ var config = {
         msg: "",
         color: ""
     },
-    isLogin: false
+    isLogin: false,
+    userInfo: null,
 }
 
 export function InitConfig() {

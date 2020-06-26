@@ -12,8 +12,9 @@ func Ping(c *gin.Context) {
 
 func GetSiteConfig(c *gin.Context) {
 	user := GetCurrentUserFromCtx(c)
+
 	if user != nil {
-		c.JSON(200, serializer.CreateSuccessResponse(user, ""))
+		c.JSON(200, serializer.CreateUserResponse(user))
 		return
 	}
 	c.JSON(200, serializer.GetUnauthorizedResponse())
