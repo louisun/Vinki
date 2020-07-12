@@ -37,10 +37,12 @@ import Typography from '@material-ui/core/Typography';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import ClassRoundedIcon from '@material-ui/icons/ClassRounded';
 import ExitToApp from '@material-ui/icons/ExitToApp';
+import ImportExportIcon from '@material-ui/icons/ImportExport';
 import KeyboardArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import SearchIcon from '@material-ui/icons/Search';
 import StarRoundedIcon from '@material-ui/icons/StarRounded';
 import SyncIcon from '@material-ui/icons/Sync';
+import SyncAltOutlinedIcon from '@material-ui/icons/SyncAltOutlined';
 
 import {
   setArticleList,
@@ -60,6 +62,7 @@ import Auth from '../../middleware/Auth';
 const mapStateToProps = state => {
     return {
         currentRepo: state.repo.currentRepo,
+        currentTag: state.tag.currentTag,
         repos: state.repo.repos,
         isLogin: state.isLogin
     }
@@ -296,10 +299,8 @@ class NavbarComponent extends Component {
 
     componentWillReceiveProps = (nextProps) => {
         this.setState({ user: Auth.GetUser() })
-        console.log(this.state.user)
         if (!this.props.isLogin && nextProps.isLogin) {
             this.getRepos()
-            console.log(this.state.user)
         }
     }
 
@@ -395,7 +396,7 @@ class NavbarComponent extends Component {
     }
 
     logout = () => {
-        API.post("/user/logout").then(response => {
+        API.post("/user/logout").then(() => {
             this.props.toggleSnackbar(
                 "top",
                 "center",
@@ -417,9 +418,62 @@ class NavbarComponent extends Component {
         })
     }
 
-    refresh = () => {
+    refreshAll = () => {
         this.handleLoadingOpen();
         API.post("/admin/refresh/all").then(response => {
+            this.handleProfileMenuClose()
+            this.handleLoadingClose()
+            this.props.toggleSnackbar(
+                "top",
+                "center",
+                response.rawData.msg,
+                "success"
+            );
+            window.location.reload()
+        }).catch(error => {
+            this.handleProfileMenuClose()
+            this.handleLoadingClose()
+            this.props.toggleSnackbar(
+                "top",
+                "center",
+                error.message,
+                "error"
+            );
+        })
+    }
+
+    refreshRepo = () => {
+        this.handleLoadingOpen();
+        API.post("/admin/refresh/repo", {
+            repoName: this.props.currentRepo
+        }).then(response => {
+            this.handleProfileMenuClose()
+            this.handleLoadingClose()
+            this.props.toggleSnackbar(
+                "top",
+                "center",
+                response.rawData.msg,
+                "success"
+            );
+            window.location.reload()
+        }).catch(error => {
+            this.handleProfileMenuClose()
+            this.handleLoadingClose()
+            this.props.toggleSnackbar(
+                "top",
+                "center",
+                error.message,
+                "error"
+            );
+        })
+    }
+
+    refreshTag = () => {
+        this.handleLoadingOpen();
+        API.post("/admin/refresh/tag", {
+            repoName: this.props.currentRepo,
+            tagName: this.props.currentTag
+        }).then(response => {
             this.handleProfileMenuClose()
             this.handleLoadingClose()
             this.props.toggleSnackbar(
@@ -674,12 +728,26 @@ class NavbarComponent extends Component {
                                         onClose={this.handleProfileMenuClose}
                                     >
                                         {(this.state.user != null && this.state.user.is_admin) ? (
-                                            <MenuItem onClick={this.refresh}>
-                                                <ListItemIcon>
-                                                    <SyncIcon fontSize="small" />
-                                                </ListItemIcon>
-                                                <ListItemText primary={"更新仓库"} />
-                                            </MenuItem>
+                                            <div>
+                                                <MenuItem onClick={this.refreshTag}>
+                                                    <ListItemIcon>
+                                                        <SyncAltOutlinedIcon fontSize="small" />
+                                                    </ListItemIcon>
+                                                    <ListItemText primary={"标签同步"} />
+                                                </MenuItem>
+                                                <MenuItem onClick={this.refreshRepo}>
+                                                    <ListItemIcon>
+                                                        <ImportExportIcon fontSize="small" />
+                                                    </ListItemIcon>
+                                                    <ListItemText primary={"仓库同步"} />
+                                                </MenuItem>
+                                                <MenuItem onClick={this.refreshAll}>
+                                                    <ListItemIcon>
+                                                        <SyncIcon fontSize="small" />
+                                                    </ListItemIcon>
+                                                    <ListItemText primary={"全局同步"} />
+                                                </MenuItem>
+                                            </div>
                                         ) : (<div />)}
                                         <MenuItem onClick={this.logout}>
                                             <ListItemIcon>
