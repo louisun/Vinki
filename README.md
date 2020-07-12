@@ -73,6 +73,8 @@ admin: admin@vinki.org
 password: vinkipass
 ```
 
+> 初次使用，请用管理员登录，并点击「全局同步」以初始化文档库。
+
 ### Docker
 
 > 若使用 Docker 运行服务，主要变动是配置文件。
