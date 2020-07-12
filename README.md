@@ -31,6 +31,10 @@ Vinki 是一款面向个人的轻量级 wiki 服务，用于快速预览和查�
 >
 > UI 也是来自北欧的 [Nord](https://www.nordtheme.com/) 配色，旨在提供简洁愉快的阅读体验。
 
+## Else
+
+> 注：目前由于 Markdown 渲染库不完善，文件中仅支持星号 `*` 作为 emphasis 斜体，`_` 下划线无作用。
+
 ## Usage
 
 ```bash
