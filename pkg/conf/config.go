@@ -1,11 +1,13 @@
 package conf
 
 import (
+	"path/filepath"
+
 	"github.com/jinzhu/configor"
 	"github.com/louisun/vinki/pkg/utils"
 )
 
-// 全局配置变量
+// GlobalConfig 全局配置变量
 var GlobalConfig = struct {
 	Database     DatabaseConfig
 	Redis        RedisConfig
@@ -51,8 +53,21 @@ func Init(path string) {
 	if !utils.ExistsFile(path) {
 		utils.Log().Panicf("配置文件路径不存在: %s", path)
 	}
+
 	err := configor.Load(&GlobalConfig, path)
+
 	if err != nil {
 		utils.Log().Panicf("加载配置文件失败, %s", err)
 	}
+}
+
+// GetDirectoryConfig 获取相应仓库配置
+func GetDirectoryConfig(repoName string) *DirectoryConfig {
+	for _, repo := range GlobalConfig.Repositories {
+		if filepath.Base(repo.Root) == repoName {
+			return &repo
+		}
+	}
+
+	return nil
 }

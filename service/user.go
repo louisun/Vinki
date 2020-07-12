@@ -1,13 +1,15 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/gin-gonic/gin"
 	"github.com/louisun/vinki/models"
 	"github.com/louisun/vinki/pkg/serializer"
 	"github.com/louisun/vinki/pkg/session"
 )
 
-const INVITATION_CODE = "VINKI_BY_RENZO"
+const InvitationCode = "VINKI_BY_RENZO"
 
 // UserRegisterService 用户注册服务
 type UserRegisterService struct {
@@ -55,15 +57,20 @@ type UserResetService struct {
 
 // Register 用户注册
 func (service *UserRegisterService) Register(c *gin.Context) serializer.Response {
+	if service.InvitationCode != InvitationCode {
+		return serializer.CreateParamErrorResponse(errors.New("invitation code incorrect"))
+	}
 	user := models.User{
 		Email:    service.UserName,
 		NickName: service.NickName,
 	}
 	_ = user.SetPassword(service.Password)
 	user.Status = models.STATUS_NOT_ACTIVE
+
 	if err := models.CreateUser(&user); err != nil {
 		return serializer.CreateDBErrorResponse("", err)
 	}
+
 	return serializer.CreateSuccessResponse("", "注册成功")
 }
 
@@ -73,15 +80,19 @@ func (service *UserLoginService) Login(c *gin.Context) serializer.Response {
 	if err != nil {
 		return serializer.CreateErrorResponse(401, "用户邮箱或密码错误", err)
 	}
+
 	if passwordCorrect, err := user.CheckPassword(service.Password); !passwordCorrect {
 		return serializer.CreateErrorResponse(serializer.CodeUnauthorized, "用户邮箱或密码错误", err)
 	}
+
 	if user.Status == models.STATUS_BANNED {
 		return serializer.CreateErrorResponse(serializer.CodeForbidden, "该用户已被封禁", err)
 	}
+
 	session.SetSession(c, map[string]interface{}{
 		"user_id": user.ID,
 	})
+
 	return serializer.CreateUserResponse(&user)
 }
 
@@ -101,6 +112,7 @@ func (service *UserResetService) ResetPassword(c *gin.Context, user *models.User
 	if err := user.SetPassword(service.NewPassword); err != nil {
 		return serializer.CreateErrorResponse(200, "重置密码失败", err)
 	}
+
 	if err := models.UpdateUser(user.ID, map[string]interface{}{"password": user.Password}); err != nil {
 		return serializer.CreateDBErrorResponse("重置密码失败", err)
 	}
@@ -114,6 +126,7 @@ func (service *ApplyForActivateService) ApplyForActivate(c *gin.Context, user *m
 	if err != nil {
 		return serializer.CreateDBErrorResponse("用户申请激活权限失败", err)
 	}
+
 	return serializer.CreateSuccessResponse("", "已向管理员申请激活，请耐心等待")
 }
 
@@ -123,6 +136,7 @@ func (service *GetApplicationsService) GetApplications() serializer.Response {
 	if err != nil {
 		return serializer.CreateDBErrorResponse("获取用户激活申请列表失败", err)
 	}
+
 	return serializer.CreateSuccessResponse(applyInfos, "")
 }
 
@@ -132,13 +146,17 @@ func (service *ActivateUserService) ActivateUser() serializer.Response {
 	if err != nil {
 		return serializer.CreateDBErrorResponse("获取用户失败", err)
 	}
+
 	if user.Status != models.STATUS_APPLYING {
 		return serializer.CreateErrorResponse(serializer.CodeConditionNotMeet, "激活用户权限失败：该用户非申请状态", nil)
 	}
+
 	err = models.UpdateUserAllowedRepos(user.ID, service.Repos)
+
 	if err != nil {
 		return serializer.CreateDBErrorResponse("激活用户权限失败", err)
 	}
+
 	return serializer.CreateSuccessResponse("", "激活用户权限成功")
 }
 
@@ -148,13 +166,17 @@ func (service *RejectUserService) RejectUser() serializer.Response {
 	if err != nil {
 		return serializer.CreateDBErrorResponse("获取用户失败", err)
 	}
+
 	if user.Status != models.STATUS_APPLYING {
 		return serializer.CreateErrorResponse(serializer.CodeConditionNotMeet, "拒绝用户失败：该用户非申请状态", nil)
 	}
+
 	err = models.UpdateUser(user.ID, map[string]interface{}{"status": models.STATUS_NOT_ACTIVE, "apply_message": ""})
+
 	if err != nil {
 		return serializer.CreateDBErrorResponse("拒绝用户失败", err)
 	}
+
 	return serializer.CreateSuccessResponse("", "拒绝用户成功")
 }
 
@@ -164,9 +186,12 @@ func (service *BanUserService) BanUser() serializer.Response {
 	if err != nil {
 		return serializer.CreateDBErrorResponse("获取用户失败", err)
 	}
+
 	err = models.UpdateUser(user.ID, map[string]interface{}{"status": models.STATUS_BANNED, "apply_message": ""})
+
 	if err != nil {
 		return serializer.CreateDBErrorResponse("封禁用户失败", err)
 	}
+
 	return serializer.CreateSuccessResponse("", "封禁用户成功")
 }

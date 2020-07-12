@@ -17,11 +17,12 @@ func RequireAuth() gin.HandlerFunc {
 					c.JSON(200, serializer.CreateErrorResponse(serializer.CodeForbidden, "该用户已被禁用", nil))
 					return
 				}
+
 				c.Next()
+
 				return
 			}
 		}
-
 		c.JSON(200, serializer.GetUnauthorizedResponse())
 		c.Abort()
 	}
@@ -39,6 +40,7 @@ func InitCurrentUserIfExists() gin.HandlerFunc {
 				c.Set("user", &user)
 			}
 		}
+
 		c.Next()
 	}
 }
@@ -51,6 +53,7 @@ func RequireAdmin() gin.HandlerFunc {
 			c.JSON(200, serializer.CreateErrorResponse(serializer.CodeAdminRequired, "非管理员无法操作", nil))
 			c.Abort()
 		}
+
 		c.Next()
 	}
 }
@@ -65,14 +68,18 @@ func CheckPermission() gin.HandlerFunc {
 			c.Next()
 			return
 		}
+
 		if user.Status == models.STATUS_NOT_ACTIVE {
 			c.JSON(200, serializer.CreateErrorResponse(serializer.CodeActiveRequired, "账号需要激活，请向管理员申请", nil))
 			c.Abort()
+
 			return
 		}
+
 		if user.Status == models.STATUS_APPLYING {
 			c.JSON(200, serializer.CreateErrorResponse(serializer.CodeActiveRequired, "已申请访问，请耐心等待", nil))
 			c.Abort()
+
 			return
 		}
 		// 判断是否在访问操作权限之外的 Repo
@@ -81,6 +88,7 @@ func CheckPermission() gin.HandlerFunc {
 			if !utils.IsInList(user.RepoNames, repoName) {
 				c.JSON(200, serializer.CreateErrorResponse(serializer.CodeForbidden, "无权限访问", nil))
 				c.Abort()
+
 				return
 			}
 		}

@@ -22,7 +22,7 @@ func SetSession(c *gin.Context, kvMap map[string]interface{}) {
 
 	err := s.Save()
 	if err != nil {
-		utils.Log().Warning("无法设置 session: %s", err)
+		utils.Log().Warningf("无法设置 session: %s", err)
 	}
 }
 
@@ -31,8 +31,9 @@ func DeleteSession(c *gin.Context, key string) {
 	s := sessions.Default(c)
 	s.Delete(key)
 	err := s.Save()
+
 	if err != nil {
-		utils.Log().Warning("无法删除 session key: %s, err: %s", key, err)
+		utils.Log().Warningf("无法删除 session key: %s, err: %s", key, err)
 	}
 }
 
@@ -41,7 +42,8 @@ func ClearSession(c *gin.Context) {
 	s := sessions.Default(c)
 	s.Clear()
 	err := s.Save()
+
 	if err != nil {
-		utils.Log().Warning("无法清空 session: %s", err)
+		utils.Log().Warningf("无法清空 session: %s", err)
 	}
 }

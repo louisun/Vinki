@@ -10,8 +10,8 @@ import (
 
 	"github.com/louisun/heyspace/space"
 
-	"github.com/gomarkdown/markdown"
-	"github.com/gomarkdown/markdown/parser"
+	"github.com/louisun/markdown"
+	"github.com/louisun/markdown/parser"
 )
 
 // FileInfo 文件信息

@@ -14,6 +14,7 @@ func GetCurrentUserFromCtx(c *gin.Context) *models.User {
 			return u
 		}
 	}
+
 	return nil
 }
 

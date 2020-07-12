@@ -10,6 +10,7 @@ import (
 
 var numberRegex = regexp.MustCompile(`^(\d+)\..*`)
 
+// Articles 文章
 type Article struct {
 	ID       uint64 `gorm:"primary_key"`
 	Title    string `gorm:"type:varchar(100);index:title;not null"` // 文章标题
@@ -21,6 +22,7 @@ type Article struct {
 	Repo     Repo `gorm:"foreignkey:RepoName;association_foreignkey:Name;PRELOAD:false;save_associations:false"` // 关联的 Repo
 }
 
+// ArticleTagInfo 标签-文章
 type ArticleTagInfo struct {
 	TagName     string `gorm:"column:tag_name" json:"tag"`
 	ArticleName string `gorm:"column:title" json:"article"`
@@ -98,14 +100,14 @@ func TruncateArticles() error {
 	return nil
 }
 
-// DeleteArticlesByRepoName 删除该 Repo 下的 Article
-func DeleteArticlesByRepoName(repoName string) error {
+// DeleteArticlesByRepo 删除该 Repo 下的 Article
+func DeleteArticlesByRepo(repoName string) error {
 	result := DB.Where("repo_name = ?", repoName).Delete(&Article{})
 	return result.Error
 }
 
 // DeleteArticlesByTagID 删除该 Tag 下的 Article
-func DeleteArticlesByTagName(repoName string, tagName string) error {
+func DeleteArticlesByTag(repoName string, tagName string) error {
 	result := DB.Where("repo_name = ? AND tag_name = ?", repoName, tagName).Delete(&Article{})
 	return result.Error
 }

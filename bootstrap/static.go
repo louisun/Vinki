@@ -25,6 +25,7 @@ func (b *GinFS) Exists(prefix string, filepath string) bool {
 	if _, err := b.FS.Open(filepath); err != nil {
 		return false
 	}
+
 	return true
 }
 
@@ -41,7 +42,7 @@ func InitStatic() {
 		StaticFS = &GinFS{}
 		StaticFS.(*GinFS).FS, err = fs.New()
 		if err != nil {
-			utils.Log().Panic("无法初始化静态资源, %s", err)
+			utils.Log().Panicf("无法初始化静态资源, %s", err)
 		}
 	}
 }

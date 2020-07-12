@@ -34,10 +34,10 @@ func addAdmin() {
 			Status:   STATUS_ACTIVE,
 		}
 		if err = adminUser.SetPassword("vinkipass"); err != nil {
-			utils.Log().Panic("无法设置管理员密码, %s", err)
+			utils.Log().Panicf("无法设置管理员密码, %s", err)
 		}
 		if err = DB.Create(&adminUser).Error; err != nil {
-			utils.Log().Panic("无法创建管理员用户, %s", err)
+			utils.Log().Panicf("无法创建管理员用户, %s", err)
 		}
 
 		c := color.New(color.FgWhite).Add(color.BgBlack).Add(color.Bold)

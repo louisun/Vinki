@@ -9,8 +9,11 @@ import (
 // Store session存储
 var Store memstore.Store
 
+const WeekSeconds = 7 * 86400
+
 func Session(secret string) gin.HandlerFunc {
 	Store = memstore.NewStore([]byte(secret))
-	Store.Options(sessions.Options{HttpOnly: true, MaxAge: 7 * 86400, Path: "/"})
+	Store.Options(sessions.Options{HttpOnly: true, MaxAge: WeekSeconds, Path: "/"})
+
 	return sessions.Sessions("vinki-session", Store)
 }

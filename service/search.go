@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	TYPE_TAG          = "tag"
-	TYPE_ARTICLE_NAME = "article"
-	TYPE_FULL_TEXT    = "full_text"
+	typeTag         = "tag"
+	typeArticleName = "article"
 )
 
+// Search 搜索
 func Search(c *gin.Context) serializer.Response {
 	searchType := c.Query("type")
 	repoName := c.Query("repo")
@@ -23,13 +23,13 @@ func Search(c *gin.Context) serializer.Response {
 		return serializer.CreateGeneralParamErrorResponse("", errors.New("搜索关键词不能为空"))
 	}
 	switch searchType {
-	case TYPE_TAG:
+	case typeTag:
 		tags, err := models.GetTagsBySearchName(repoName, keyword)
 		if err != nil {
 			return serializer.CreateDBErrorResponse("", err)
 		}
 		return serializer.CreateSuccessResponse(tags, "")
-	case TYPE_ARTICLE_NAME:
+	case typeArticleName:
 		articleTagInfos, err := models.GetArticlesBySearchParam(repoName, keyword)
 		if err != nil {
 			return serializer.CreateDBErrorResponse("", err)

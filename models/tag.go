@@ -33,6 +33,12 @@ func GetTagsByRepoName(repoName string) ([]Tag, error) {
 	return tags, result.Error
 }
 
+func GetTag(repoName, tagName string) (Tag, error) {
+	var tag Tag
+	result := DB.Where("repo_name = ? and name = ?", repoName, tagName).First(&tag)
+	return tag, result.Error
+}
+
 // GetTagsBySearchName 根据 repo 名和 tagName 搜索 Tags
 func GetTagsBySearchName(repoName, tagName string) ([]string, error) {
 	var tags []string
@@ -123,9 +129,15 @@ func TruncateTags() error {
 	return result.Error
 }
 
-// TruncateTagsByRepo 清空某个 repo 下的 Tags
-func DeleteTagsByRepo(repoID uint64) error {
-	result := DB.Where("repo_id = ?", repoID).Delete(&Tag{})
+// DeleteTagsByRepo 清空某个 repo 下的 Tags
+func DeleteTagsByRepo(repoName string) error {
+	result := DB.Where("repo_name = ?", repoName).Delete(&Tag{})
+	return result.Error
+}
+
+// DeleteTag 清空某个 repo 下的 tag
+func DeleteTag(repoName string, tagName string) error {
+	result := DB.Where("repo_name = ? and tag = ?", repoName, tagName).Delete(&Tag{})
 	return result.Error
 }
 

@@ -8,7 +8,7 @@ import (
 	"github.com/louisun/vinki/pkg/serializer"
 )
 
-type TagArticleInfoView struct {
+type tagArticleInfoView struct {
 	models.TagView
 	ArticleInfos []string
 }
@@ -20,8 +20,10 @@ func GetTopTagInfosByRepo(repoName string) serializer.Response {
 		if err == gorm.ErrRecordNotFound {
 			return serializer.CreateGeneralParamErrorResponse("当前仓库无标签可获取", err)
 		}
+
 		return serializer.CreateDBErrorResponse("", err)
 	}
+
 	return serializer.CreateSuccessResponse(tags, "")
 }
 
@@ -31,43 +33,33 @@ func GetTagArticleView(repoName string, tagName string, flat bool) serializer.Re
 		tagView models.TagView
 		err     error
 	)
+
 	if flat {
 		tagView, err = models.GetFlatTagView(repoName, tagName)
 	} else {
 		tagView, err = models.GetTagView(repoName, tagName)
 	}
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return serializer.CreateGeneralParamErrorResponse("tag 不存在", err)
 		}
+
 		return serializer.CreateDBErrorResponse("", err)
 	}
+
 	articles, err := models.GetArticleList(repoName, tagName)
+
 	if err != nil {
 		return serializer.CreateDBErrorResponse("", err)
 	}
+
 	sort.Sort(models.Articles(articles))
-	view := TagArticleInfoView{
+
+	view := tagArticleInfoView{
 		TagView:      tagView,
 		ArticleInfos: articles,
 	}
+
 	return serializer.CreateSuccessResponse(view, "")
-}
-
-// 添加标签名
-func AddTags(tags []*models.Tag) error {
-	err := models.AddTags(tags)
-	return err
-}
-
-// truncateTags 清空 Tag
-func truncateTags() error {
-	err := models.TruncateTags()
-	return err
-}
-
-// deleteTagsByRepo 清空某个 repo 下的 Tags
-func deleteTagsByRepo(repoID uint64) error {
-	err := models.DeleteTagsByRepo(repoID)
-	return err
 }
