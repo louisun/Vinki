@@ -147,9 +147,10 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 		var articles = make([]*models.Article, 0, len(tasks))
 		for _, task := range tasks {
 			wg.Add(1)
+			t := task
 			_ = p.Submit(func() {
 				defer wg.Done()
-				handleArticleTask(task, articleChan)
+				handleArticleTask(t, articleChan)
 			})
 		}
 		wg.Wait()
