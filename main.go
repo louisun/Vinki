@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/louisun/vinki/service"
+
 	"github.com/louisun/vinki/bootstrap"
 	"github.com/louisun/vinki/pkg/conf"
 	"github.com/louisun/vinki/pkg/utils"
@@ -18,9 +20,18 @@ func initConfig() {
 	bootstrap.Init(confPath)
 }
 
+func initRepository() {
+	err := service.RefreshDatabase()
+	if err != nil {
+		utils.Log().Fatalf("initRepository failed: %v", err)
+	}
+}
+
 func main() {
 	// 初始化配置
 	initConfig()
+	// 初始化文档库
+	initRepository()
 	// 初始化路由
 	engine := routers.InitRouter()
 

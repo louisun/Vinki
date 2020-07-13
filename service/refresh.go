@@ -8,6 +8,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+
+	"github.com/panjf2000/ants/v2"
 
 	"github.com/louisun/vinki/pkg/serializer"
 
@@ -25,6 +28,34 @@ type RepoRequest struct {
 type RepoTagRequest struct {
 	RepoName string `form:"repoName" json:"repoName" binding:"required"`
 	TagName  string `form:"tagName" json:"tagName" binding:"required"`
+}
+
+type articleTask struct {
+	FileInfo *utils.FileInfo
+	RepoName string
+	TagName  string
+}
+
+const (
+	ConcurrentSize = 50
+	TagSeparator   = "|"
+)
+
+// handleArticleTask 处理一个标签下的 Articles
+func handleArticleTask(articleTask articleTask, articleChan chan *models.Article) {
+	htmlBytes, err := utils.RenderMarkdown(articleTask.FileInfo.Path)
+	if err != nil {
+		w := fmt.Errorf("RenderMarkdown failed: %w", err)
+		utils.Log().Errorf("%v", w)
+	}
+	article := models.Article{
+		Title:    articleTask.FileInfo.BriefName,
+		Path:     articleTask.FileInfo.Path,
+		HTML:     string(htmlBytes),
+		TagName:  articleTask.TagName,
+		RepoName: articleTask.RepoName,
+	}
+	articleChan <- &article
 }
 
 // loadLocalRepo 加载本地仓库数据到数据库
@@ -60,8 +91,7 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 		// 根据 tag 路径列表构造 Tag
 		for _, tp := range tagPathList {
 			parentpath := filepath.Dir(tp)
-			// TODO 该分隔符的实现不太美观
-			tagname := strings.Join(strings.Split(strings.TrimPrefix(tp, repo.Path+"/"), "/"), "--")
+			tagname := strings.Join(strings.Split(strings.TrimPrefix(tp, repo.Path+"/"), "/"), TagSeparator)
 
 			if parentpath == repoPath {
 				// 一级目录
@@ -94,33 +124,44 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 			tagPath2Name[tag.Path] = tag.Name
 		}
 
+		p, err := ants.NewPool(ConcurrentSize)
+		if err != nil {
+			w := fmt.Errorf("create goroutine pool failed: %w", err)
+			utils.Log().Errorf("%v", w)
+			return w
+		}
+		defer p.Release()
+		var tasks []articleTask
 		// 4. 构造 Article 并创建 articles: 遍历 tagPath2FileListMap
 		for tagPath, fileInfos := range tagPath2FileListMap {
-			articles := make([]*models.Article, 0, len(fileInfos))
-			// 遍历每个标签路径下的 md 文件信息
 			for _, fileInfo := range fileInfos {
-				var htmlBytes []byte
-				// Markdown 渲染
-				htmlBytes, err := utils.RenderMarkdown(fileInfo.Path)
-				if err != nil {
-					w := fmt.Errorf("RenderMarkdown failed: %w", err)
-					utils.Log().Errorf("%v", w)
-					return w
-				}
-				articles = append(articles, &models.Article{
-					RepoName: repo.Name,
-					TagName:  tagPath2Name[tagPath],
-					Title:    fileInfo.BriefName,
-					Path:     fileInfo.Path,
-					HTML:     string(htmlBytes),
+				tasks = append(tasks, articleTask{
+					fileInfo,
+					repo.Name,
+					tagPath2Name[tagPath],
 				})
 			}
-			err := models.AddArticles(articles)
-			if err != nil {
-				w := fmt.Errorf("addArticles failed: %w", err)
-				utils.Log().Errorf("%v", w)
-				return w
-			}
+		}
+		var wg sync.WaitGroup
+		var articleChan = make(chan *models.Article, len(tasks))
+		var articles = make([]*models.Article, 0, len(tasks))
+		for _, task := range tasks {
+			wg.Add(1)
+			_ = p.Submit(func() {
+				defer wg.Done()
+				handleArticleTask(task, articleChan)
+			})
+		}
+		wg.Wait()
+		close(articleChan)
+		for article := range articleChan {
+			articles = append(articles, article)
+		}
+		err = models.AddArticles(articles)
+		if err != nil {
+			w := fmt.Errorf("AddArticles failed: %w", err)
+			utils.Log().Errorf("%v", w)
+			return w
 		}
 	} else {
 		err := fmt.Errorf("repo path not exist: %s", r.Root)
@@ -168,9 +209,19 @@ func loadLocalTag(tag models.Tag) error {
 
 // RefreshGlobal 全局刷新
 func RefreshGlobal() serializer.Response {
+	err := RefreshDatabase()
+	if err != nil {
+		return serializer.CreateInternalErrorResponse("同步仓库失败", err)
+	}
+	return serializer.CreateSuccessResponse("", "同步仓库成功")
+}
+
+func RefreshDatabase() error {
 	// 清空所有数据库
 	if err := clearAll(); err != nil {
-		return serializer.CreateDBErrorResponse("", err)
+		w := fmt.Errorf("clearAll failed: %w", err)
+		utils.Log().Errorf("%v", w)
+		return w
 	}
 	// 遍历每个 Repo 配置项
 	var repos []string
@@ -178,17 +229,19 @@ func RefreshGlobal() serializer.Response {
 		repos = append(repos, filepath.Base(r.Root))
 		err := loadLocalRepo(r)
 		if err != nil {
-			return serializer.CreateInternalErrorResponse("loadLocalRepo failed", err)
+			w := fmt.Errorf("loadLocalRepo failed: %w", err)
+			utils.Log().Errorf("%v", w)
+			return w
 		}
 	}
 	// 授予管理员所有仓库的访问权限
 	err := models.UpdateUserAllowedRepos(1, repos)
 	if err != nil {
-		utils.Log().Errorf("Grant repos to admin failed, err: %v", err)
-		return serializer.CreateDBErrorResponse("", err)
+		w := fmt.Errorf("UpdateUserAllowedRepos to admin failed: %w", err)
+		utils.Log().Errorf("%v", w)
+		return w
 	}
-	utils.Log().Info("Refresh database success!")
-	return serializer.CreateSuccessResponse("", "同步仓库成功")
+	return nil
 }
 
 // RefreshRepo 只刷新特定的Repo
@@ -207,6 +260,7 @@ func RefreshRepo(repoName string) serializer.Response {
 	if err != nil {
 		return serializer.CreateInternalErrorResponse("loadLocalRepo failed", err)
 	}
+	utils.Log().Info("[Success] Refresh Local Repository")
 	return serializer.CreateSuccessResponse("", "同步当前仓库成功")
 }
 
@@ -231,6 +285,7 @@ func RefreshTag(repoName string, tagName string) serializer.Response {
 	if err != nil {
 		return serializer.CreateInternalErrorResponse("loadLocalTag failed", err)
 	}
+	utils.Log().Info("[Success] Refresh Local Tag")
 	return serializer.CreateSuccessResponse("", "同步当前标签成功")
 }
 

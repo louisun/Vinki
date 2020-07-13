@@ -48,6 +48,7 @@ func RenderMarkdown(mdPath string) ([]byte, error) {
 		Log().Errorf("Open mdFile %s failed: %v", mdPath, err)
 		return nil, err
 	}
+	defer mdFile.Close()
 	md, err := ioutil.ReadAll(mdFile)
 	if err != nil {
 		Log().Errorf("Read mdFile %s failed", mdPath)

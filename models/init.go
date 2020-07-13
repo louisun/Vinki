@@ -15,7 +15,7 @@ import (
 var DB *gorm.DB
 
 func Init() {
-	utils.Log().Info("Init DatabaseConfig Connection")
+	utils.Log().Info("初始化数据库连接")
 
 	var (
 		db  *gorm.DB
