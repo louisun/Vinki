@@ -65,8 +65,6 @@ repositories:
 
 上面配置了 3 个仓库的路径（包括要排除的文件或目录名），服务端口为 `6167`。
 
-> 第一次使用请用下面的**管理员账号**登录，并尝试点击「**更新仓库**」以初始化仓库数据。
-
 ```properties
 # default admin
 admin: admin@vinki.org
