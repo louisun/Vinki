@@ -1,82 +1,69 @@
-echo "Usage: $0 [-a] [-b] [-d]" 1>&2;
+usage() {
+  echo "                 [Vinki Build Scripts]"
+  echo "[Params]  default='--all'"
+  echo
+  echo "--all     build all project (frontend end backend)"
+  echo "--front   build web files (including generate static go file system)"
+  echo "--back    build go project"
+}
+
+if [[ $# == 0 ]];then
+  usage
+  exit 0
+fi  
 
 REPO=$(cd $(dirname $0); pwd)
-COMMIT_SHA=$(git rev-parse --short HEAD)
 
-ASSETS="false"
-BINARY="false"
+buildFrontend () {
+ cd "$REPO" || exit
+ rm -rf frontend/build
+ rm -f statik/statik.go
 
-debugInfo () {
-  echo "Repo:           $REPO"
-  echo "Build assets:   $ASSETS"
-  echo "Build binary:   $BINARY"
-  echo "Commit:        $COMMIT_SHA"
+ export CI=false
+
+ cd "$REPO"/frontend || exit
+
+ yarn install
+ echo "[INFO]    yarn install finished"
+ yarn run build
+ echo "[INFO]    yarn build finished"
+
+ if ! [ -x "$(command -v statik)" ]; then
+   export CGO_ENABLED=0
+   go get github.com/rakyll/statik
+ fi
+
+ cd "$REPO" || exit
+ statik -src=frontend/build/  -include="*.html,*.js,*.json,*.css,*.png,*.svg,*.ico,*.woff,*.woff2,*.txt" -f
+ echo "[INFO]    static/statik.go generated"
+ echo "[SUCCESS] build frontend done"
 }
 
-buildAssets () {
-  cd "$REPO" || exit
-  rm -rf frontend/build
-  rm -f statik/statik.go
-
-  export CI=false
-
-  cd "$REPO"/frontend || exit
-
-  yarn install
-  yarn run build
-
-  if ! [ -x "$(command -v statik)" ]; then
-    export CGO_ENABLED=0
-    go get github.com/rakyll/statik
-  fi
-
-  cd "$REPO" || exit
-  statik -src=frontend/build/  -include="*.html,*.js,*.json,*.css,*.png,*.svg,*.ico,*.woff,*.woff2,*.txt" -f
+buildBackend () {
+ cd "$REPO" || exit
+ echo "[INFO]    go build -a -o vinki"
+ go build -a -o vinki
+ echo "[INFO]    vinki binary generated"
+ echo "[SUCCESS] build backend done"
 }
 
-buildBinary () {
-  cd "$REPO" || exit
-  go build -a -o vinki
+
+buildAll () {
+  buildFrontend
+  buildBackend
 }
 
-uage() {
-  echo "Usage: $0 [-a] [-b] [-d]" 1>&2;
-  exit 1;
-}
-
-while getopts "bacr:d" o; do
-  case "${o}" in
-    b)
-      ASSETS="true"
-      BINARY="true"
-      ;;
-    a)
-      ASSETS="true"
-      ;;
-    d)
-      DEBUG="true"
-      ;;
-    *)
-      usage
-      ;;
-  esac
-done
-shift $((OPTIND-1))
-
-if [ "$DEBUG" = "true" ]; then
-  debugInfo
-fi
-
-if [ "$ASSETS" = "true" ]; then
-  buildAssets
-fi
-
-if [ "$BINARY" = "true" ]; then
-  buildBinary
-  RESULT=$?
-  if [ $RESULT -eq 0 ]; then
-    echo "build binary success"
-  else
-    echo "build binary failed"
-  fi
-fi
+case $1 in
+  -a|--all)
+    buildAll
+    ;;
+  -f | --front)
+    buildFrontend
+    ;;
+  -b | --back)
+    buildBackend
+    ;;
+  *)
+    usage
+    ;;  
+esac
