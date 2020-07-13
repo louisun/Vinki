@@ -1,24 +1,12 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import {
-  Link,
-  withRouter,
-} from 'react-router-dom';
+import {connect} from 'react-redux';
+import {Link, withRouter,} from 'react-router-dom';
 
-import { faMarkdown } from '@fortawesome/free-brands-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  Backdrop,
-  Card,
-  CardContent,
-  Chip,
-  CircularProgress,
-  Dialog,
-  IconButton,
-  List,
-} from '@material-ui/core';
+import {faMarkdown} from '@fortawesome/free-brands-svg-icons';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {Backdrop, Card, CardContent, Chip, CircularProgress, Dialog, IconButton, List,} from '@material-ui/core';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import InputBase from '@material-ui/core/InputBase';
@@ -27,11 +15,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import StyledMenu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import {
-  fade,
-  withStyles,
-  withTheme,
-} from '@material-ui/core/styles';
+import {fade, withStyles, withTheme,} from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import AccountCircle from '@material-ui/icons/AccountCircle';
@@ -45,16 +29,16 @@ import SyncIcon from '@material-ui/icons/Sync';
 import SyncAltOutlinedIcon from '@material-ui/icons/SyncAltOutlined';
 
 import {
-  setArticleList,
-  setCurrentRepo,
-  setCurrentTag,
-  setCurrentTopTag,
-  setLoginStatus,
-  setRepos,
-  setSecondTags,
-  setSubTags,
-  setTopTags,
-  toggleSnackbar,
+    setArticleList,
+    setCurrentRepo,
+    setCurrentTag,
+    setCurrentTopTag,
+    setLoginStatus,
+    setRepos,
+    setSecondTags,
+    setSubTags,
+    setTopTags,
+    toggleSnackbar,
 } from '../../actions';
 import API from '../../middleware/Api';
 import Auth from '../../middleware/Auth';
@@ -507,7 +491,7 @@ class NavbarComponent extends Component {
             if (response.data == null) {
                 return;
             }
-            if (tag.split("--").length === 1) {
+            if (tag.split("|").length === 1) {
                 this.props.setCurrentTopTag(tag);
                 if (response.data.SubTags) {
                     this.props.setSecondTags(response.data.SubTags);
@@ -515,8 +499,8 @@ class NavbarComponent extends Component {
                     this.props.setSecondTags([]);
                 }
                 this.props.setSubTags([])
-            } else if (tag.split("--").length > 1) {
-                this.props.setCurrentTopTag(tag.split("--")[0]);
+            } else if (tag.split("|").length > 1) {
+                this.props.setCurrentTopTag(tag.split("|")[0]);
                 this.props.setSecondTags([tag]);
                 this.props.setSubTags(response.data.SubTags);
             }
@@ -547,7 +531,7 @@ class NavbarComponent extends Component {
             if (response.data == null) {
                 return;
             }
-            if (tag.split("--").length === 1) {
+            if (tag.split("|").length === 1) {
                 this.props.setCurrentTopTag(tag);
                 if (response.data.SubTags) {
                     this.props.setSecondTags(response.data.SubTags);
@@ -555,7 +539,7 @@ class NavbarComponent extends Component {
                     this.props.setSecondTags([]);
                 }
                 this.props.setSubTags([])
-            } else if (tag.split("--").length > 1) {
+            } else if (tag.split("|").length > 1) {
                 this.props.setSubTags(response.data.SubTags);
             }
             this.props.setArticleList(response.data.ArticleInfos)
@@ -602,7 +586,7 @@ class NavbarComponent extends Component {
                 l.push(
                     <Chip
                         key={"nav_search_tag" + i}
-                        label={tagList[i].split("--").join(" | ")}
+                        label={tagList[i].split("|").join(" | ")}
                         className={classes.tagChip}
                         clickable={true}
                         onClick={(event) => this.handleTagClick(event, tagList[i])}
@@ -639,7 +623,7 @@ class NavbarComponent extends Component {
                         />
                         <Chip
                             key={"nav_search_article_tag" + i}
-                            label={articleList[i].tag.split("--").join(" | ")}
+                            label={articleList[i].tag.split("|").join(" | ")}
                             className={classes.articleChip}
                         />
                     </ListItem>

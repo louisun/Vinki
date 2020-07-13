@@ -1,11 +1,11 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 
 import PropTypes from 'prop-types';
-import { connect } from 'react-redux';
-import { withRouter } from 'react-router-dom';
+import {connect} from 'react-redux';
+import {withRouter} from 'react-router-dom';
 
-import { faMarkdown } from '@fortawesome/free-brands-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {faMarkdown} from '@fortawesome/free-brands-svg-icons';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import Box from '@material-ui/core/Box';
 import Chip from '@material-ui/core/Chip';
 import Divider from '@material-ui/core/Divider';
@@ -13,24 +13,21 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import {
-  withStyles,
-  withTheme,
-} from '@material-ui/core/styles';
+import {withStyles, withTheme,} from '@material-ui/core/styles';
 import Switch from '@material-ui/core/Switch';
 import Typography from '@material-ui/core/Typography';
 
 import {
-  setArticleList,
-  setCurrentTag,
-  setCurrentTopTag,
-  setSecondTags,
-  setSubTags,
-  setTopTags,
-  toggleSnackbar,
+    setArticleList,
+    setCurrentTag,
+    setCurrentTopTag,
+    setSecondTags,
+    setSubTags,
+    setTopTags,
+    toggleSnackbar,
 } from '../../actions';
 import API from '../../middleware/Api';
-import { lastOfArray } from '../../utils';
+import {lastOfArray} from '../../utils';
 
 const mapStateToProps = (state) => {
     return {
@@ -345,7 +342,7 @@ class TagsComponent extends Component {
                 l.push(
                     <Chip
                         key={"tag_chip" + i}
-                        label={lastOfArray(tagList[i].split("--"))}
+                        label={lastOfArray(tagList[i].split("|"))}
                         className={className}
                         clickable={true}
                         onClick={(event) => this.handleTagClick(event, tagList[i], type)}

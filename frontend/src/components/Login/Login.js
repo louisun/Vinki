@@ -1,10 +1,7 @@
-import React, {
-  useCallback,
-  useState,
-} from 'react';
+import React, {useCallback, useState,} from 'react';
 
-import { useDispatch } from 'react-redux';
-import { useHistory } from 'react-router-dom';
+import {useDispatch} from 'react-redux';
+import {useHistory} from 'react-router-dom';
 
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
@@ -12,18 +9,12 @@ import Container from '@material-ui/core/Container';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
-import {
-  makeStyles,
-  withStyles,
-} from '@material-ui/core/styles';
+import {makeStyles, withStyles,} from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 
-import {
-  setLoginStatus,
-  toggleSnackbar,
-} from '../../actions';
+import {setLoginStatus, toggleSnackbar,} from '../../actions';
 import API from '../../middleware/Api';
 import Auth from '../../middleware/Auth';
 
@@ -168,12 +159,12 @@ export default function Login() {
           </Button>
           <Grid container >
             <Grid item xs>
-              <Link href="#" variant="body2" className={classes.text}>
+              <Link href="|" variant="body2" className={classes.text}>
                 忘记账号
               </Link>
             </Grid>
             <Grid item>
-              <Link href="#" variant="body2" className={classes.text}>
+              <Link href="|" variant="body2" className={classes.text}>
                 {"没有账号？来注册吧"}
               </Link>
             </Grid>
