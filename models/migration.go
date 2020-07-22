@@ -41,7 +41,7 @@ func addAdmin() {
 		}
 
 		c := color.New(color.FgWhite).Add(color.BgBlack).Add(color.Bold)
-		utils.Log().Info("初始管理员账号：" + c.Sprint("admin@cloudreve.org"))
+		utils.Log().Info("初始管理员账号：" + c.Sprint("admin@vinki.org"))
 		utils.Log().Info("初始管理员密码：" + c.Sprint(password))
 	}
 }

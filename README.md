@@ -77,13 +77,13 @@ password: vinkipass
 
 **一、制作镜像**
 
-直接从仓库拉取作者的镜像：
+可以直接从仓库拉取作者的镜像：
 
 ```bash
 docker pull louisun/vinki:latest
 ```
 
-本地构建：
+也可以在本地构建：
 
 ```bash
 docker build -t louisun/vinki .
@@ -107,7 +107,7 @@ vinki
 
 下面会映射上述目录至容器中的目录，推荐为 `/vinki/repository`。
 
-假如本机配置放在 `/Users/dog/.vinki/conf/config.yaml` 中， 需要做如下的配置：
+假如本机配置放在 `/Users/dog/.vinki/conf/config.yml` 中， 需要做如下的配置：
 
 ```yaml
 system:
