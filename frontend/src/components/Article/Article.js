@@ -1,14 +1,17 @@
 import '../../assets/css/markdown.css';
 import '../../assets/css/nord.css';
 
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
-import {withRouter} from 'react-router-dom';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
 
-import {faHashtag, faListUl,} from '@fortawesome/free-solid-svg-icons';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {
+  faHashtag,
+  faListUl,
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Card from '@material-ui/core/Card';
 import CardActionArea from '@material-ui/core/CardActionArea';
 import CardContent from '@material-ui/core/CardContent';
@@ -17,14 +20,25 @@ import Hidden from '@material-ui/core/Hidden';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
-import {withStyles, withTheme,} from '@material-ui/core/styles';
+import {
+  withStyles,
+  withTheme,
+} from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import Skeleton from '@material-ui/lab/Skeleton';
 
-import {setArticleList, setCurrentRepo, setCurrentTag, toggleSnackbar,} from '../../actions';
+import {
+  setArticleList,
+  setCurrentRepo,
+  setCurrentTag,
+  toggleSnackbar,
+} from '../../actions';
 import cardImage from '../../assets/img/card.png';
 import API from '../../middleware/Api';
-import {isEmptyObject, lastOfArray,} from '../../utils';
+import {
+  isEmptyObject,
+  lastOfArray,
+} from '../../utils';
 import Hilight from './Highlight';
 import Latex from './Latex';
 
@@ -340,6 +354,16 @@ class ArticleComponent extends Component {
         });
         if (this.props.currentRepo === "" || this.props.currentRepo !== this.props.match.params.repoName) {
             this.props.setCurrentRepo(this.props.match.params.repoName)
+            API.post("/admin/config/repo", {
+                currentRepo: this.props.match.params.repoName
+            }).catch(error => {
+                this.props.toggleSnackbar(
+                    "top",
+                    "center",
+                    error.message,
+                    "error"
+                );
+            });
         }
         if (this.props.currentTag === "") {
             API.get("/tag", {
@@ -629,10 +653,10 @@ class ArticleComponent extends Component {
                                     <Skeleton animation="wave" />
                                 </div>
                             ) : (
-                                    <Latex>
-                                        <Hilight content={this.state.article.HTML}></Hilight>
-                                    </Latex>
-                                )}
+                                <Latex>
+                                    <Hilight content={this.state.article.HTML}></Hilight>
+                                </Latex>
+                            )}
                         </div>
                     </div>
                     <Hidden smUp>

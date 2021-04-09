@@ -23,7 +23,9 @@ func RequireAuth() gin.HandlerFunc {
 				return
 			}
 		}
+
 		c.JSON(200, serializer.GetUnauthorizedResponse())
+
 		c.Abort()
 	}
 }

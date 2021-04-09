@@ -55,6 +55,11 @@ type UserResetService struct {
 	NewPassword string `form:"newPassword" json:"newPassword" binding:"required,min=4,max=64"`
 }
 
+// UserSetCurrentRepo 设置当前仓库
+type UserSetCurrentRepo struct {
+	CurrentRepo string `form:"currentRepo" json:"currentRepo" binding:"required"`
+}
+
 // Register 用户注册
 func (service *UserRegisterService) Register(c *gin.Context) serializer.Response {
 	if service.InvitationCode != InvitationCode {
@@ -194,4 +199,23 @@ func (service *BanUserService) BanUser() serializer.Response {
 	}
 
 	return serializer.CreateSuccessResponse("", "封禁用户成功")
+}
+
+func (service *UserSetCurrentRepo) SetCurrentRepo(userID uint64) serializer.Response {
+	err := models.SetCurrentRepo(userID, service.CurrentRepo)
+	if err != nil {
+		return serializer.CreateInternalErrorResponse("设置当前仓库失败", err)
+	}
+
+	return serializer.CreateSuccessResponse("", "设置当前仓库成功")
+
+}
+
+func GetCurrentRepo(userID uint64) serializer.Response {
+	repo, err := models.GetCurrentRepo(userID)
+	if err != nil {
+		return serializer.CreateInternalErrorResponse("获取当前仓库失败", err)
+	}
+
+	return serializer.CreateSuccessResponse(repo, "获取当前仓库成功")
 }

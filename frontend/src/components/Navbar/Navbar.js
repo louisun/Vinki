@@ -1,12 +1,24 @@
-import React, {Component} from 'react';
+import React, { Component } from 'react';
 
 import PropTypes from 'prop-types';
-import {connect} from 'react-redux';
-import {Link, withRouter,} from 'react-router-dom';
+import { connect } from 'react-redux';
+import {
+  Link,
+  withRouter,
+} from 'react-router-dom';
 
-import {faMarkdown} from '@fortawesome/free-brands-svg-icons';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import {Backdrop, Card, CardContent, Chip, CircularProgress, Dialog, IconButton, List,} from '@material-ui/core';
+import { faMarkdown } from '@fortawesome/free-brands-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  Backdrop,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Dialog,
+  IconButton,
+  List,
+} from '@material-ui/core';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import InputBase from '@material-ui/core/InputBase';
@@ -15,7 +27,11 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import StyledMenu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import {fade, withStyles, withTheme,} from '@material-ui/core/styles';
+import {
+  fade,
+  withStyles,
+  withTheme,
+} from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
 import AccountCircle from '@material-ui/icons/AccountCircle';
@@ -29,16 +45,16 @@ import SyncIcon from '@material-ui/icons/Sync';
 import SyncAltOutlinedIcon from '@material-ui/icons/SyncAltOutlined';
 
 import {
-    setArticleList,
-    setCurrentRepo,
-    setCurrentTag,
-    setCurrentTopTag,
-    setLoginStatus,
-    setRepos,
-    setSecondTags,
-    setSubTags,
-    setTopTags,
-    toggleSnackbar,
+  setArticleList,
+  setCurrentRepo,
+  setCurrentTag,
+  setCurrentTopTag,
+  setLoginStatus,
+  setRepos,
+  setSecondTags,
+  setSubTags,
+  setTopTags,
+  toggleSnackbar,
 } from '../../actions';
 import API from '../../middleware/Api';
 import Auth from '../../middleware/Auth';
@@ -268,12 +284,31 @@ class NavbarComponent extends Component {
     }
 
     getRepos = () => {
-        API.get("/repos").then(response => {
-            if (response.data.length > 0) {
-                this.props.setRepos(response.data)
-                this.props.setCurrentRepo(response.data[0])
+        API.get("/repos").then(repoResp => {
+            if (repoResp.data.length > 0) {
+                this.props.setRepos(repoResp.data)
+                API.get("/admin/config/repo").then(response => {
+                    if (response.data == "") {
+                        // 如果数据的当前仓库为空，默认为列表第一个
+                        this.props.setCurrentRepo(repoResp.data[0])
+                    } else {
+                        // 数据库当前仓库非空，才设置该仓库
+                        this.props.setCurrentRepo(response.data)
+                    }
+                }).catch(error => {
+                    this.props.toggleSnackbar(
+                        "top",
+                        "center",
+                        error.message,
+                        "error"
+                    );
+                });
             }
         }).catch(() => { })
+    }
+
+    setRepo = () => {
+
     }
 
     componentDidMount() {
@@ -301,6 +336,16 @@ class NavbarComponent extends Component {
         for (let i = 0; i < this.props.repos.length; i++) {
             if (this.props.repos[i] === repoName) {
                 this.props.setCurrentRepo(repoName)
+                API.post("/admin/config/repo", {
+                    currentRepo: repoName
+                }).catch(error => {
+                    this.props.toggleSnackbar(
+                        "top",
+                        "center",
+                        error.message,
+                        "error"
+                    );
+                });
                 break
             }
         }

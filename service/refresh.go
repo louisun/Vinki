@@ -214,6 +214,7 @@ func RefreshGlobal() serializer.Response {
 	if err != nil {
 		return serializer.CreateInternalErrorResponse("同步仓库失败", err)
 	}
+
 	return serializer.CreateSuccessResponse("", "同步仓库成功")
 }
 

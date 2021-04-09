@@ -124,3 +124,38 @@ func ApplyForActivate(c *gin.Context) {
 		c.JSON(200, res)
 	}
 }
+
+// SetCurrentRepo 设置当前的仓库
+func SetCurrentRepo(c *gin.Context) {
+	var s service.UserSetCurrentRepo
+	if err := c.ShouldBindJSON(&s); err != nil {
+		c.JSON(200, serializer.CreateParamErrorResponse(err))
+	} else {
+		var user *models.User
+		userCtx, ok := c.Get("user")
+		if !ok {
+			c.JSON(200, serializer.GetUnauthorizedResponse())
+			return
+		}
+
+		user = userCtx.(*models.User)
+		res := s.SetCurrentRepo(user.ID)
+
+		c.JSON(200, res)
+	}
+}
+
+// GetCurrentRepo 获取当前仓库
+func GetCurrentRepo(c *gin.Context) {
+	var user *models.User
+	userCtx, ok := c.Get("user")
+	if !ok {
+		c.JSON(200, serializer.GetUnauthorizedResponse())
+		return
+	}
+
+	user = userCtx.(*models.User)
+	res := service.GetCurrentRepo(user.ID)
+
+	c.JSON(200, res)
+}

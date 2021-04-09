@@ -23,15 +23,16 @@ const (
 
 // User 用户
 type User struct {
-	ID           uint64 `gorm:"primary_key"`
-	Email        string `gorm:"type:varchar(100);unique_index"`
-	NickName     string `gorm:"size:30"`
-	Password     string `json:"-"`
-	IsAdmin      bool
-	Repos        string   `json:"-"`
-	RepoNames    []string `gorm:"-" json:"repos"`
-	ApplyMessage string   `json:"-"`
-	Status       int
+	ID              uint64 `gorm:"primary_key"`
+	Email           string `gorm:"type:varchar(100);unique_index"`
+	NickName        string `gorm:"size:30"`
+	Password        string `json:"-"`
+	IsAdmin         bool
+	Repos           string   `json:"-"`
+	CurrentRepoName string   `json:"current_repo"`
+	RepoNames       []string `gorm:"-" json:"repos"`
+	ApplyMessage    string   `json:"-"`
+	Status          int
 }
 
 type UserApplyInfo struct {
@@ -48,6 +49,7 @@ func (User) TableName() string {
 func GetUserByID(ID uint64) (User, error) {
 	var user User
 	result := DB.First(&user, ID)
+
 	return user, result.Error
 }
 
@@ -55,6 +57,7 @@ func GetUserByID(ID uint64) (User, error) {
 func GetAvailableUserByID(ID interface{}) (User, error) {
 	var user User
 	result := DB.Where("status != ?", STATUS_BANNED).First(&user, ID)
+
 	return user, result.Error
 }
 
@@ -62,6 +65,7 @@ func GetAvailableUserByID(ID interface{}) (User, error) {
 func GetUserByEmail(email string) (User, error) {
 	var user User
 	result := DB.Where("email = ?", email).First(&user)
+
 	return user, result.Error
 }
 
@@ -71,19 +75,40 @@ func CreateUser(user *User) error {
 	return result.Error
 }
 
+// SetCurrentRepo 设置用户当前仓库
+func SetCurrentRepo(userID uint64, repo string) error {
+	return DB.Model(&User{}).Where("id = ?", userID).Update("current_repo_name", repo).Error
+}
+
+// GetCurrentRepo 获取用户当前仓库
+func GetCurrentRepo(userID uint64) (string, error) {
+	var user User
+	err := DB.Model(&User{}).Where("id = ?", userID).First(&user).Error
+
+	if err != nil {
+		return "", nil
+	}
+
+	return user.CurrentRepoName, nil
+}
+
 // SetPassword 设置密码
 func (user *User) SetPassword(password string) error {
 	// 随机 salt 值：16位
 	salt := utils.RandString(16)
+
 	// 计算密码和 salt 组合的 SHA1 摘要
 	hash := sha1.New()
+
 	_, err := hash.Write([]byte(password + salt))
-	bs := hex.EncodeToString(hash.Sum(nil))
 	if err != nil {
 		return err
 	}
+
+	bs := hex.EncodeToString(hash.Sum(nil))
 	// 设置密码为 salt 值和摘要的组合
 	user.Password = salt + ":" + bs
+
 	return nil
 }
 
@@ -93,13 +118,15 @@ func (user *User) CheckPassword(password string) (bool, error) {
 	if len(passwordEncrpt) != 2 {
 		return false, errors.New("unknown password type")
 	}
+
 	// 生成摘要，判断密码是否匹配
 	hash := sha1.New()
 	_, err := hash.Write([]byte(password + passwordEncrpt[0]))
-	bs := hex.EncodeToString(hash.Sum(nil))
 	if err != nil {
 		return false, err
 	}
+
+	bs := hex.EncodeToString(hash.Sum(nil))
 	// 判断哈希是否一致
 	return bs == passwordEncrpt[1], nil
 }
@@ -120,7 +147,9 @@ func UpdateUserAllowedRepos(userID uint64, repos []string) error {
 	if err != nil {
 		return err
 	}
+
 	result := DB.Model(&User{}).Update(map[string]interface{}{"id": userID, "repos": string(b), "status": STATUS_ACTIVE})
+
 	return result.Error
 }
 
@@ -129,12 +158,15 @@ func (user *User) AfterFind() (err error) {
 	if user.Repos != "" {
 		err = json.Unmarshal([]byte(user.Repos), &user.RepoNames)
 	}
+
 	return err
 }
 
 // GetApplyingUserInfo 获取申请的用户信息
 func GetApplyingUserInfo() ([]UserApplyInfo, error) {
 	var users []UserApplyInfo
+
 	result := DB.Model(&User{}).Where("status = ?", STATUS_APPLYING).Select("id, nick_name, apply_message").Scan(&users)
+
 	return users, result.Error
 }

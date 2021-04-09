@@ -71,6 +71,8 @@ func InitRouter() *gin.Engine {
 				admin.GET("applications", controllers.GetApplications)
 				admin.POST("application/activate", controllers.ActivateUser)
 				admin.POST("application/reject", controllers.RejectUserApplication)
+				admin.GET("config/repo", controllers.GetCurrentRepo)
+				admin.POST("config/repo", controllers.SetCurrentRepo)
 			}
 			auth.POST("apply", controllers.ApplyForActivate)
 			auth.GET("search", controllers.Search)
