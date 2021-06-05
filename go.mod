@@ -10,7 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.5.0
 	github.com/jinzhu/configor v1.1.1
 	github.com/jinzhu/gorm v1.9.12
-	github.com/louisun/heyspace v0.0.0-20201117145228-56b4a8ec3535
+	github.com/louisun/heyspace v0.0.0-20210605090938-e43b1432ab01
 	github.com/louisun/markdown v0.0.0-20200704095430-42a367159036
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/panjf2000/ants/v2 v2.4.1
