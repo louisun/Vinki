@@ -30,5 +30,6 @@ func CreateUserResponse(user *models.User) Response {
 		IsAdmin:  user.IsAdmin,
 		Status:   user.Status,
 	}
+
 	return CreateSuccessResponse(data, "")
 }

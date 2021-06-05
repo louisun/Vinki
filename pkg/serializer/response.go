@@ -23,7 +23,6 @@ func CreateSuccessResponse(data interface{}, msg string) Response {
 	}
 }
 
-// CreateErrorResponse 创建错误响应体
 func CreateErrorResponse(errCode int, msg string, err error) Response {
 	// 如果 err 是 ServiceError 类型，则覆盖参数传入的错误内容
 	if serviceError, ok := err.(ServiceError); ok {
@@ -64,7 +63,6 @@ func CreateGeneralParamErrorResponse(msg string, err error) Response {
 	return CreateErrorResponse(CodeParamError, msg, err)
 }
 
-// CreateParamErrorMsg 根据Validator返回的错误信息给出错误提示
 func CreateParamErrorMsg(filed string, tag string) string {
 	// 未通过验证的表单域与中文对应
 	fieldMap := map[string]string{
@@ -88,7 +86,6 @@ func CreateParamErrorMsg(filed string, tag string) string {
 	return ""
 }
 
-// CreateParamErrorResponse 返回错误消息
 func CreateParamErrorResponse(err error) Response {
 	// 处理 Validator 产生的错误
 	if ve, ok := err.(validator.ValidationErrors); ok {

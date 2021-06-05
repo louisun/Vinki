@@ -48,6 +48,7 @@ func handleArticleTask(articleTask articleTask, articleChan chan *models.Article
 		w := fmt.Errorf("RenderMarkdown failed: %w", err)
 		utils.Log().Errorf("%v", w)
 	}
+
 	article := models.Article{
 		Title:    articleTask.FileInfo.BriefName,
 		Path:     articleTask.FileInfo.Path,
@@ -55,14 +56,17 @@ func handleArticleTask(articleTask articleTask, articleChan chan *models.Article
 		TagName:  articleTask.TagName,
 		RepoName: articleTask.RepoName,
 	}
+
 	articleChan <- &article
 }
 
 // loadLocalRepo 加载本地仓库数据到数据库
 func loadLocalRepo(r conf.DirectoryConfig) error {
 	if utils.ExistsDir(r.Root) {
-		var repoPath = r.Root
-		var tagPath2Name = make(map[string]string)
+		var (
+			repoPath     = r.Root
+			tagPath2Name = make(map[string]string)
+		)
 
 		if strings.HasSuffix(repoPath, "/") {
 			repoPath = strings.TrimSuffix(repoPath, "/")
@@ -76,6 +80,7 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 		if err := models.AddRepo(&repo); err != nil {
 			w := fmt.Errorf("addRepo failed: %w", err)
 			utils.Log().Errorf("%v", w)
+
 			return w
 		}
 		// 遍历 repo，获取标签路径列表、标签对应的文件列表字典
@@ -84,6 +89,7 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 		if err != nil {
 			w := fmt.Errorf("traverseRepo failed: %w", err)
 			utils.Log().Errorf("%v", w)
+
 			return w
 		}
 
@@ -142,22 +148,30 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 				})
 			}
 		}
-		var wg sync.WaitGroup
-		var articleChan = make(chan *models.Article, len(tasks))
-		var articles = make([]*models.Article, 0, len(tasks))
+
+		var (
+			wg          sync.WaitGroup
+			articleChan = make(chan *models.Article, len(tasks))
+			articles    = make([]*models.Article, 0, len(tasks))
+		)
+
 		for _, task := range tasks {
 			wg.Add(1)
+
 			t := task
 			_ = p.Submit(func() {
 				defer wg.Done()
 				handleArticleTask(t, articleChan)
 			})
 		}
+
 		wg.Wait()
 		close(articleChan)
+
 		for article := range articleChan {
 			articles = append(articles, article)
 		}
+
 		err = models.AddArticles(articles)
 		if err != nil {
 			w := fmt.Errorf("AddArticles failed: %w", err)
@@ -167,6 +181,7 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 	} else {
 		err := fmt.Errorf("repo path not exist: %s", r.Root)
 		utils.Log().Error(err)
+
 		return err
 	}
 
@@ -181,7 +196,9 @@ func loadLocalTag(tag models.Tag) error {
 		utils.Log().Errorf("%v", w)
 		return w
 	}
+
 	articles := make([]*models.Article, 0, len(fileInfos))
+
 	for _, fileInfo := range fileInfos {
 		var htmlBytes []byte
 		// Markdown 渲染
@@ -191,6 +208,7 @@ func loadLocalTag(tag models.Tag) error {
 			utils.Log().Errorf("%v", w)
 			return w
 		}
+
 		articles = append(articles, &models.Article{
 			RepoName: tag.RepoName,
 			TagName:  tag.Name,
@@ -199,12 +217,14 @@ func loadLocalTag(tag models.Tag) error {
 			HTML:     string(htmlBytes),
 		})
 	}
+
 	err = models.AddArticles(articles)
 	if err != nil {
 		w := fmt.Errorf("addArticles failed: %w", err)
 		utils.Log().Errorf("%v", w)
 		return w
 	}
+
 	return nil
 }
 
@@ -229,10 +249,12 @@ func RefreshDatabase() error {
 	var repos []string
 	for _, r := range conf.GlobalConfig.Repositories {
 		repos = append(repos, filepath.Base(r.Root))
+
 		err := loadLocalRepo(r)
 		if err != nil {
 			w := fmt.Errorf("loadLocalRepo failed: %w", err)
 			utils.Log().Errorf("%v", w)
+
 			return w
 		}
 	}
@@ -241,8 +263,10 @@ func RefreshDatabase() error {
 	if err != nil {
 		w := fmt.Errorf("UpdateUserAllowedRepos to admin failed: %w", err)
 		utils.Log().Errorf("%v", w)
+
 		return w
 	}
+
 	return nil
 }
 
@@ -253,16 +277,20 @@ func RefreshRepo(repoName string) serializer.Response {
 	if cfg == nil {
 		return serializer.CreateParamErrorResponse(errors.New("repo not exist"))
 	}
+
 	// 清空该 repo 相关的数据
 	err := clearRepo(repoName)
 	if err != nil {
 		return serializer.CreateDBErrorResponse("", err)
 	}
+
 	err = loadLocalRepo(*cfg)
 	if err != nil {
 		return serializer.CreateInternalErrorResponse("loadLocalRepo failed", err)
 	}
+
 	utils.Log().Info("[Success] Refresh Local Repository")
+
 	return serializer.CreateSuccessResponse("", "同步当前仓库成功")
 }
 
@@ -273,21 +301,26 @@ func RefreshTag(repoName string, tagName string) serializer.Response {
 	if cfg == nil {
 		return serializer.CreateParamErrorResponse(errors.New("repo not exist"))
 	}
+
 	// 清空 tag 下的 articles
 	err := clearTag(repoName, tagName)
 	if err != nil {
 		return serializer.CreateDBErrorResponse("", err)
 	}
+
 	// 获取该目录的文章列表信息，重新生成文章
 	tag, err := models.GetTag(repoName, tagName)
 	if err != nil {
 		return serializer.CreateDBErrorResponse("", err)
 	}
+
 	err = loadLocalTag(tag)
 	if err != nil {
 		return serializer.CreateInternalErrorResponse("loadLocalTag failed", err)
 	}
+
 	utils.Log().Info("[Success] Refresh Local Tag")
+
 	return serializer.CreateSuccessResponse("", "同步当前标签成功")
 }
 
@@ -298,20 +331,25 @@ func clearAll() error {
 	if err != nil {
 		w := fmt.Errorf("truncate tag db failed: %w", err)
 		utils.Log().Errorf("%v", w)
+
 		return w
 	}
+
 	// 清空 repo 数据库
 	err = models.TruncateRepo()
 	if err != nil {
 		w := fmt.Errorf("truncate repo db failed: %w", err)
 		utils.Log().Errorf("%v", w)
+
 		return w
 	}
+
 	// 清空 article 数据库
 	err = models.TruncateArticles()
 	if err != nil {
 		w := fmt.Errorf("truncate article db failed: %w", err)
 		utils.Log().Errorf("%v", w)
+
 		return w
 	}
 	return nil
@@ -324,6 +362,7 @@ func clearRepo(repoName string) error {
 	if err != nil {
 		w := fmt.Errorf("delete repo failed: %w", err)
 		utils.Log().Errorf("%v", w)
+
 		return w
 	}
 	// 清空 repo 下的 tags
@@ -331,15 +370,19 @@ func clearRepo(repoName string) error {
 	if err != nil {
 		w := fmt.Errorf("delete tags failed: %w", err)
 		utils.Log().Errorf("%v", w)
+
 		return w
 	}
+
 	// 清空 repo 下的 articles
 	err = models.DeleteArticlesByRepo(repoName)
 	if err != nil {
 		w := fmt.Errorf("delete articles failed: %w", err)
 		utils.Log().Errorf("%v", w)
+
 		return w
 	}
+
 	return nil
 }
 
@@ -350,19 +393,22 @@ func clearTag(repoName string, tagName string) error {
 	if err != nil {
 		w := fmt.Errorf("delete articles failed: %w", err)
 		utils.Log().Errorf("%v", w)
+
 		return w
 	}
+
 	return nil
 }
 
 // traverseRepo 遍历 Repo 目录，生成标签与文档的映射树
 func traverseRepo(repo conf.DirectoryConfig) (tagPaths []string, tagPath2FileListMap utils.TagPath2FileInfo, err error) {
 	tagPath2FileListMap = make(map[string][]*utils.FileInfo)
-	var root = repo.Root
-	var exclude = repo.Exclude
+	var (
+		root       = repo.Root
+		exclude    = repo.Exclude
+		rootPrefix = root // rootPrefix 用于拆分标签
+	)
 
-	// rootPrefix 用于拆分标签
-	var rootPrefix = root
 	if !strings.HasSuffix(rootPrefix, "/") {
 		rootPrefix = rootPrefix + "/"
 	}
@@ -380,6 +426,7 @@ func traverseRepo(repo conf.DirectoryConfig) (tagPaths []string, tagPath2FileLis
 			// md 文件 -> Article
 			// 保存 Tag 路径 -> FileInfo
 			dir := filepath.Dir(path)
+
 			if paths, ok := tagPath2FileListMap[dir]; ok {
 				paths = append(paths, &utils.FileInfo{
 					BriefName: strings.TrimSuffix(info.Name(), ".md"),
@@ -392,6 +439,7 @@ func traverseRepo(repo conf.DirectoryConfig) (tagPaths []string, tagPath2FileLis
 					BriefName: strings.TrimSuffix(info.Name(), ".md"),
 					Path:      path,
 				})
+
 				tagPath2FileListMap[dir] = paths
 			}
 		}
@@ -406,6 +454,7 @@ func getArticlesInTag(tag models.Tag) (fileInfoList []*utils.FileInfo, err error
 	if err != nil {
 		return
 	}
+
 	for _, info := range originalInfos {
 		if strings.HasSuffix(info.Name(), ".md") {
 			fileInfoList = append(fileInfoList, &utils.FileInfo{
@@ -414,5 +463,6 @@ func getArticlesInTag(tag models.Tag) (fileInfoList []*utils.FileInfo, err error
 			})
 		}
 	}
+
 	return
 }

@@ -162,3 +162,5 @@ yarn-error.log*
 
 
 /statik/
+
+.vscode

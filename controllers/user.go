@@ -20,7 +20,7 @@ func GetCurrentUserFromCtx(c *gin.Context) *models.User {
 
 // UserRegister 用户注册
 func UserRegister(c *gin.Context) {
-	var s service.UserRegisterService
+	var s service.UserRegisterRequest
 	if err := c.ShouldBindJSON(&s); err != nil {
 		c.JSON(200, serializer.CreateParamErrorResponse(err))
 	} else {
@@ -31,7 +31,7 @@ func UserRegister(c *gin.Context) {
 
 // UserLogin 用户登录
 func UserLogin(c *gin.Context) {
-	var s service.UserLoginService
+	var s service.UserLoginRequest
 	if err := c.ShouldBindJSON(&s); err != nil {
 		c.JSON(200, serializer.CreateParamErrorResponse(err))
 	} else {
@@ -42,14 +42,14 @@ func UserLogin(c *gin.Context) {
 
 // UserLogout 用户登出
 func UserLogout(c *gin.Context) {
-	var s service.UserLogoutService
+	var s service.UserLogoutRequest
 	res := s.Logout(c)
 	c.JSON(200, res)
 }
 
 // UserPasswordReset 用户重置密码
 func UserResetPassword(c *gin.Context) {
-	var s service.UserResetService
+	var s service.UserResetRequest
 	if err := c.ShouldBindJSON(&s); err != nil {
 		c.JSON(200, serializer.CreateParamErrorResponse(err))
 	} else {
@@ -68,14 +68,14 @@ func UserResetPassword(c *gin.Context) {
 
 // GetApplications 管理员查看用户申请
 func GetApplications(c *gin.Context) {
-	var s service.GetApplicationsService
+	var s service.GetApplicationsRequest
 	res := s.GetApplications()
 	c.JSON(200, res)
 }
 
 // ActivateUser 激活用户
 func ActivateUser(c *gin.Context) {
-	var s service.ActivateUserService
+	var s service.ActivateUserRequest
 	if err := c.ShouldBindJSON(&s); err != nil {
 		c.JSON(200, serializer.CreateParamErrorResponse(err))
 	} else {
@@ -86,7 +86,7 @@ func ActivateUser(c *gin.Context) {
 
 // RejectUserApplication 拒绝用户申请
 func RejectUserApplication(c *gin.Context) {
-	var s service.RejectUserService
+	var s service.RejectUserRequest
 	if err := c.ShouldBindJSON(&s); err != nil {
 		c.JSON(200, serializer.CreateParamErrorResponse(err))
 	} else {
@@ -97,7 +97,7 @@ func RejectUserApplication(c *gin.Context) {
 
 // BanUser 封禁用户
 func BanUser(c *gin.Context) {
-	var s service.BanUserService
+	var s service.BanUserRequest
 	if err := c.ShouldBindJSON(&s); err != nil {
 		c.JSON(200, serializer.CreateParamErrorResponse(err))
 	} else {
@@ -109,7 +109,7 @@ func BanUser(c *gin.Context) {
 // ApplyForActivate 向管理员申请激活
 func ApplyForActivate(c *gin.Context) {
 	// 实际就是修改自己的 user 状态和申请 message
-	var s service.ApplyForActivateService
+	var s service.ApplyForActivateRequest
 	if err := c.ShouldBindJSON(&s); err != nil {
 		c.JSON(200, serializer.CreateParamErrorResponse(err))
 	} else {

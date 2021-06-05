@@ -8,7 +8,7 @@ import (
 	"github.com/louisun/vinki/service"
 )
 
-// 获取某文章详细信息
+// GetArticle 获取某文章详细信息
 func GetArticle(c *gin.Context) {
 	repoName := c.Query("repoName")
 	tagName := c.Query("tagName")
