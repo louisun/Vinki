@@ -2,7 +2,7 @@ package bootstrap
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/louisun/vinki/models"
+	"github.com/louisun/vinki/model"
 	"github.com/louisun/vinki/pkg/conf"
 	"github.com/louisun/vinki/pkg/utils"
 )
@@ -23,7 +23,7 @@ func Init(path string) {
 	// cache.Init()
 
 	// 初始化数据库
-	models.Init()
+	model.Init()
 
 	// 初始化静态文件系统 StaticFS
 	InitStatic()

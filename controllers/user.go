@@ -2,15 +2,15 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/louisun/vinki/models"
+	"github.com/louisun/vinki/model"
 	"github.com/louisun/vinki/pkg/serializer"
 	"github.com/louisun/vinki/service"
 )
 
 // GetCurrentUserFromCtx 获取当前用户
-func GetCurrentUserFromCtx(c *gin.Context) *models.User {
+func GetCurrentUserFromCtx(c *gin.Context) *model.User {
 	if user, _ := c.Get("user"); user != nil {
-		if u, ok := user.(*models.User); ok {
+		if u, ok := user.(*model.User); ok {
 			return u
 		}
 	}
@@ -53,13 +53,13 @@ func UserResetPassword(c *gin.Context) {
 	if err := c.ShouldBindJSON(&s); err != nil {
 		c.JSON(200, serializer.CreateParamErrorResponse(err))
 	} else {
-		var user *models.User
+		var user *model.User
 		userCtx, ok := c.Get("user")
 		if !ok {
 			c.JSON(200, serializer.GetUnauthorizedResponse())
 			return
 		}
-		user = userCtx.(*models.User)
+		user = userCtx.(*model.User)
 		// 校验并重置密码
 		res := s.ResetPassword(c, user)
 		c.JSON(200, res)
@@ -113,13 +113,13 @@ func ApplyForActivate(c *gin.Context) {
 	if err := c.ShouldBindJSON(&s); err != nil {
 		c.JSON(200, serializer.CreateParamErrorResponse(err))
 	} else {
-		var user *models.User
+		var user *model.User
 		userCtx, ok := c.Get("user")
 		if !ok {
 			c.JSON(200, serializer.GetUnauthorizedResponse())
 			return
 		}
-		user = userCtx.(*models.User)
+		user = userCtx.(*model.User)
 		res := s.ApplyForActivate(c, user)
 		c.JSON(200, res)
 	}
@@ -131,14 +131,14 @@ func SetCurrentRepo(c *gin.Context) {
 	if err := c.ShouldBindJSON(&s); err != nil {
 		c.JSON(200, serializer.CreateParamErrorResponse(err))
 	} else {
-		var user *models.User
+		var user *model.User
 		userCtx, ok := c.Get("user")
 		if !ok {
 			c.JSON(200, serializer.GetUnauthorizedResponse())
 			return
 		}
 
-		user = userCtx.(*models.User)
+		user = userCtx.(*model.User)
 		res := s.SetCurrentRepo(user.ID)
 
 		c.JSON(200, res)
@@ -147,14 +147,14 @@ func SetCurrentRepo(c *gin.Context) {
 
 // GetCurrentRepo 获取当前仓库
 func GetCurrentRepo(c *gin.Context) {
-	var user *models.User
+	var user *model.User
 	userCtx, ok := c.Get("user")
 	if !ok {
 		c.JSON(200, serializer.GetUnauthorizedResponse())
 		return
 	}
 
-	user = userCtx.(*models.User)
+	user = userCtx.(*model.User)
 	res := service.GetCurrentRepo(user.ID)
 
 	c.JSON(200, res)

@@ -1,4 +1,4 @@
-package models
+package model
 
 type Repo struct {
 	ID   uint64 `gorm:"primary_key"`

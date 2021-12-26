@@ -1,4 +1,4 @@
-package models
+package model
 
 import (
 	"regexp"
@@ -10,16 +10,17 @@ import (
 
 var numberRegex = regexp.MustCompile(`^(\d+)\..*`)
 
-// Articles 文章
+// Article 文章
 type Article struct {
 	ID       uint64 `gorm:"primary_key"`
 	Title    string `gorm:"type:varchar(100);index:title;not null"` // 文章标题
 	Path     string `gorm:"type:varchar(200);not null"`             // 文件路径
+	RawPath  string `gorm:"type:varchar(200);not null"`             // 原始文件路径
 	HTML     string `gorm:"type:text"`                              // Markdown 渲染后的 HTML
 	TagName  string
 	RepoName string
-	Tag      Tag  `gorm:"foreignkey:TagName;association_foreignkey:Name;PRELOAD:false;save_associations:false"`  // 关联的 Tag
-	Repo     Repo `gorm:"foreignkey:RepoName;association_foreignkey:Name;PRELOAD:false;save_associations:false"` // 关联的 Repo
+	Tag      Tag  `gorm:"foreignkey:TagName;association_foreignkey:Name;PRELOAD:false;save_associations:false"`  // 标签
+	Repo     Repo `gorm:"foreignkey:RepoName;association_foreignkey:Name;PRELOAD:false;save_associations:false"` // 仓库
 }
 
 // ArticleTagInfo 标签-文章
@@ -146,9 +147,8 @@ func AddArticles(articles []*Article) error {
 
 // UpdateArticle 更新文章
 func UpdateArticle(id uint64, title string, html string) error {
-	result := DB.Model(&Article{}).Where("id = ?", id).Updates(map[string]interface{}{
+	return DB.Model(&Article{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"title": title,
 		"html":  html,
-	})
-	return result.Error
+	}).Error
 }

@@ -3,7 +3,7 @@ package middleware
 import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
-	"github.com/louisun/vinki/models"
+	"github.com/louisun/vinki/model"
 	"github.com/louisun/vinki/pkg/serializer"
 	"github.com/louisun/vinki/pkg/utils"
 )
@@ -12,8 +12,8 @@ import (
 func RequireAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if userCtx, _ := c.Get("user"); userCtx != nil {
-			if user, ok := userCtx.(*models.User); ok {
-				if user.Status == models.STATUS_BANNED {
+			if user, ok := userCtx.(*model.User); ok {
+				if user.Status == model.STATUS_BANNED {
 					c.JSON(200, serializer.CreateErrorResponse(serializer.CodeForbidden, "该用户已被禁用", nil))
 					return
 				}
@@ -37,7 +37,7 @@ func InitCurrentUserIfExists() gin.HandlerFunc {
 		// Login 会在 session 中 Set user_id
 		uid := session.Get("user_id")
 		if uid != nil {
-			user, err := models.GetAvailableUserByID(uid)
+			user, err := model.GetAvailableUserByID(uid)
 			if err == nil {
 				c.Set("user", &user)
 			}
@@ -51,7 +51,7 @@ func InitCurrentUserIfExists() gin.HandlerFunc {
 func RequireAdmin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user, _ := c.Get("user")
-		if !user.(*models.User).IsAdmin {
+		if !user.(*model.User).IsAdmin {
 			c.JSON(200, serializer.CreateErrorResponse(serializer.CodeAdminRequired, "非管理员无法操作", nil))
 			c.Abort()
 		}
@@ -64,21 +64,21 @@ func RequireAdmin() gin.HandlerFunc {
 func CheckPermission() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userCtx, _ := c.Get("user")
-		user := userCtx.(*models.User)
+		user := userCtx.(*model.User)
 		// 管理员直接允许
 		if user.IsAdmin {
 			c.Next()
 			return
 		}
 
-		if user.Status == models.STATUS_NOT_ACTIVE {
+		if user.Status == model.STATUS_NOT_ACTIVE {
 			c.JSON(200, serializer.CreateErrorResponse(serializer.CodeActiveRequired, "账号需要激活，请向管理员申请", nil))
 			c.Abort()
 
 			return
 		}
 
-		if user.Status == models.STATUS_APPLYING {
+		if user.Status == model.STATUS_APPLYING {
 			c.JSON(200, serializer.CreateErrorResponse(serializer.CodeActiveRequired, "已申请访问，请耐心等待", nil))
 			c.Abort()
 

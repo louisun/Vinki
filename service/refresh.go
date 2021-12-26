@@ -16,7 +16,7 @@ import (
 
 	"github.com/louisun/vinki/pkg/conf"
 
-	"github.com/louisun/vinki/models"
+	"github.com/louisun/vinki/model"
 
 	"github.com/louisun/vinki/pkg/utils"
 )
@@ -42,14 +42,14 @@ const (
 )
 
 // handleArticleTask 处理一个标签下的 Articles
-func handleArticleTask(articleTask articleTask, articleChan chan *models.Article) {
+func handleArticleTask(articleTask articleTask, articleChan chan *model.Article) {
 	htmlBytes, err := utils.RenderMarkdown(articleTask.FileInfo.Path)
 	if err != nil {
 		w := fmt.Errorf("RenderMarkdown failed: %w", err)
 		utils.Log().Errorf("%v", w)
 	}
 
-	article := models.Article{
+	article := model.Article{
 		Title:    articleTask.FileInfo.BriefName,
 		Path:     articleTask.FileInfo.Path,
 		HTML:     string(htmlBytes),
@@ -72,12 +72,12 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 			repoPath = strings.TrimSuffix(repoPath, "/")
 		}
 
-		repo := models.Repo{
+		repo := model.Repo{
 			Name: filepath.Base(repoPath),
 			Path: repoPath,
 		}
 		// 创建 repo
-		if err := models.AddRepo(&repo); err != nil {
+		if err := model.AddRepo(&repo); err != nil {
 			w := fmt.Errorf("addRepo failed: %w", err)
 			utils.Log().Errorf("%v", w)
 
@@ -93,7 +93,7 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 			return w
 		}
 
-		tags := make([]*models.Tag, 0, len(tagPathList))
+		tags := make([]*model.Tag, 0, len(tagPathList))
 		// 根据 tag 路径列表构造 Tag
 		for _, tp := range tagPathList {
 			parentpath := filepath.Dir(tp)
@@ -101,14 +101,14 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 
 			if parentpath == repoPath {
 				// 一级目录
-				tags = append(tags, &models.Tag{
+				tags = append(tags, &model.Tag{
 					Path:     tp,
 					RepoName: repo.Name,
 					Name:     tagname,
 				})
 			} else {
 				// 子目录
-				tags = append(tags, &models.Tag{
+				tags = append(tags, &model.Tag{
 					Path:     tp,
 					RepoName: repo.Name,
 					Name:     tagname,
@@ -120,7 +120,7 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 			}
 		}
 		// 3. 创建 Tag
-		if err := models.AddTags(tags); err != nil {
+		if err := model.AddTags(tags); err != nil {
 			w := fmt.Errorf("addTags failed: %w", err)
 			utils.Log().Errorf("%v", w)
 			return w
@@ -151,8 +151,8 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 
 		var (
 			wg          sync.WaitGroup
-			articleChan = make(chan *models.Article, len(tasks))
-			articles    = make([]*models.Article, 0, len(tasks))
+			articleChan = make(chan *model.Article, len(tasks))
+			articles    = make([]*model.Article, 0, len(tasks))
 		)
 
 		for _, task := range tasks {
@@ -172,7 +172,7 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 			articles = append(articles, article)
 		}
 
-		err = models.AddArticles(articles)
+		err = model.AddArticles(articles)
 		if err != nil {
 			w := fmt.Errorf("AddArticles failed: %w", err)
 			utils.Log().Errorf("%v", w)
@@ -189,7 +189,7 @@ func loadLocalRepo(r conf.DirectoryConfig) error {
 }
 
 // loadLocalTag 加载本地标签的文章数据到数据库
-func loadLocalTag(tag models.Tag) error {
+func loadLocalTag(tag model.Tag) error {
 	fileInfos, err := getArticlesInTag(tag)
 	if err != nil {
 		w := fmt.Errorf("getArticlesInTag failed: %w", err)
@@ -197,7 +197,7 @@ func loadLocalTag(tag models.Tag) error {
 		return w
 	}
 
-	articles := make([]*models.Article, 0, len(fileInfos))
+	articles := make([]*model.Article, 0, len(fileInfos))
 
 	for _, fileInfo := range fileInfos {
 		var htmlBytes []byte
@@ -209,7 +209,7 @@ func loadLocalTag(tag models.Tag) error {
 			return w
 		}
 
-		articles = append(articles, &models.Article{
+		articles = append(articles, &model.Article{
 			RepoName: tag.RepoName,
 			TagName:  tag.Name,
 			Title:    fileInfo.BriefName,
@@ -218,7 +218,7 @@ func loadLocalTag(tag models.Tag) error {
 		})
 	}
 
-	err = models.AddArticles(articles)
+	err = model.AddArticles(articles)
 	if err != nil {
 		w := fmt.Errorf("addArticles failed: %w", err)
 		utils.Log().Errorf("%v", w)
@@ -259,7 +259,7 @@ func RefreshDatabase() error {
 		}
 	}
 	// 授予管理员所有仓库的访问权限
-	err := models.UpdateUserAllowedRepos(1, repos)
+	err := model.UpdateUserAllowedRepos(1, repos)
 	if err != nil {
 		w := fmt.Errorf("UpdateUserAllowedRepos to admin failed: %w", err)
 		utils.Log().Errorf("%v", w)
@@ -309,7 +309,7 @@ func RefreshTag(repoName string, tagName string) serializer.Response {
 	}
 
 	// 获取该目录的文章列表信息，重新生成文章
-	tag, err := models.GetTag(repoName, tagName)
+	tag, err := model.GetTag(repoName, tagName)
 	if err != nil {
 		return serializer.CreateDBErrorResponse("", err)
 	}
@@ -327,7 +327,7 @@ func RefreshTag(repoName string, tagName string) serializer.Response {
 // clearAll 清空所有 Article、Tag、Repo
 func clearAll() error {
 	// 清空 tag 数据库
-	err := models.TruncateTags()
+	err := model.TruncateTags()
 	if err != nil {
 		w := fmt.Errorf("truncate tag db failed: %w", err)
 		utils.Log().Errorf("%v", w)
@@ -336,7 +336,7 @@ func clearAll() error {
 	}
 
 	// 清空 repo 数据库
-	err = models.TruncateRepo()
+	err = model.TruncateRepo()
 	if err != nil {
 		w := fmt.Errorf("truncate repo db failed: %w", err)
 		utils.Log().Errorf("%v", w)
@@ -345,7 +345,7 @@ func clearAll() error {
 	}
 
 	// 清空 article 数据库
-	err = models.TruncateArticles()
+	err = model.TruncateArticles()
 	if err != nil {
 		w := fmt.Errorf("truncate article db failed: %w", err)
 		utils.Log().Errorf("%v", w)
@@ -358,7 +358,7 @@ func clearAll() error {
 // clearRepo 清空指定 Repo 及以下的 Tag 和 Article
 func clearRepo(repoName string) error {
 	// 清空指定 repo
-	err := models.DeleteRepo(repoName)
+	err := model.DeleteRepo(repoName)
 	if err != nil {
 		w := fmt.Errorf("delete repo failed: %w", err)
 		utils.Log().Errorf("%v", w)
@@ -366,7 +366,7 @@ func clearRepo(repoName string) error {
 		return w
 	}
 	// 清空 repo 下的 tags
-	err = models.DeleteTagsByRepo(repoName)
+	err = model.DeleteTagsByRepo(repoName)
 	if err != nil {
 		w := fmt.Errorf("delete tags failed: %w", err)
 		utils.Log().Errorf("%v", w)
@@ -375,7 +375,7 @@ func clearRepo(repoName string) error {
 	}
 
 	// 清空 repo 下的 articles
-	err = models.DeleteArticlesByRepo(repoName)
+	err = model.DeleteArticlesByRepo(repoName)
 	if err != nil {
 		w := fmt.Errorf("delete articles failed: %w", err)
 		utils.Log().Errorf("%v", w)
@@ -389,7 +389,7 @@ func clearRepo(repoName string) error {
 // clearTag 清空指定 Tag 下的 Article
 func clearTag(repoName string, tagName string) error {
 	// 清空 repo 下的 articles
-	err := models.DeleteArticlesByTag(repoName, tagName)
+	err := model.DeleteArticlesByTag(repoName, tagName)
 	if err != nil {
 		w := fmt.Errorf("delete articles failed: %w", err)
 		utils.Log().Errorf("%v", w)
@@ -448,7 +448,7 @@ func traverseRepo(repo conf.DirectoryConfig) (tagPaths []string, tagPath2FileLis
 	return
 }
 
-func getArticlesInTag(tag models.Tag) (fileInfoList []*utils.FileInfo, err error) {
+func getArticlesInTag(tag model.Tag) (fileInfoList []*utils.FileInfo, err error) {
 	var originalInfos []os.FileInfo
 	originalInfos, err = ioutil.ReadDir(tag.Path)
 	if err != nil {

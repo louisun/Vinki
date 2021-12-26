@@ -1,7 +1,7 @@
 package serializer
 
 import (
-	"github.com/louisun/vinki/models"
+	"github.com/louisun/vinki/model"
 	"github.com/louisun/vinki/pkg/conf"
 	"github.com/louisun/vinki/pkg/utils"
 )
@@ -22,7 +22,7 @@ func GetUnauthorizedResponse() Response {
 	}
 }
 
-func CreateUserResponse(user *models.User) Response {
+func CreateUserResponse(user *model.User) Response {
 	data := UserDTO{
 		ID:       utils.GenerateHash(user.ID, utils.UserID, conf.GlobalConfig.System.HashIDSalt),
 		Email:    user.Email,

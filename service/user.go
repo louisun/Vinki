@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/gin-gonic/gin"
-	"github.com/louisun/vinki/models"
+	"github.com/louisun/vinki/model"
 	"github.com/louisun/vinki/pkg/serializer"
 	"github.com/louisun/vinki/pkg/session"
 )
@@ -66,14 +66,14 @@ func (service *UserRegisterRequest) Register(c *gin.Context) serializer.Response
 	if service.InvitationCode != InvitationCode {
 		return serializer.CreateParamErrorResponse(errors.New("invitation code incorrect"))
 	}
-	user := models.User{
+	user := model.User{
 		Email:    service.UserName,
 		NickName: service.NickName,
 	}
 	_ = user.SetPassword(service.Password)
-	user.Status = models.STATUS_NOT_ACTIVE
+	user.Status = model.STATUS_NOT_ACTIVE
 
-	if err := models.CreateUser(&user); err != nil {
+	if err := model.CreateUser(&user); err != nil {
 		return serializer.CreateDBErrorResponse("", err)
 	}
 
@@ -82,7 +82,7 @@ func (service *UserRegisterRequest) Register(c *gin.Context) serializer.Response
 
 // Login 用户登录
 func (service *UserLoginRequest) Login(c *gin.Context) serializer.Response {
-	user, err := models.GetUserByEmail(service.UserName)
+	user, err := model.GetUserByEmail(service.UserName)
 	if err != nil {
 		return serializer.CreateErrorResponse(401, "用户邮箱或密码错误", err)
 	}
@@ -91,7 +91,7 @@ func (service *UserLoginRequest) Login(c *gin.Context) serializer.Response {
 		return serializer.CreateErrorResponse(serializer.CodeUnauthorized, "用户邮箱或密码错误", err)
 	}
 
-	if user.Status == models.STATUS_BANNED {
+	if user.Status == model.STATUS_BANNED {
 		return serializer.CreateErrorResponse(serializer.CodeForbidden, "该用户已被封禁", err)
 	}
 
@@ -109,7 +109,7 @@ func (service *UserLogoutRequest) Logout(c *gin.Context) serializer.Response {
 }
 
 // ResetPassword 重置用户密码
-func (service *UserResetRequest) ResetPassword(c *gin.Context, user *models.User) serializer.Response {
+func (service *UserResetRequest) ResetPassword(c *gin.Context, user *model.User) serializer.Response {
 	// 验证旧密码
 	if passwordCorrect, err := user.CheckPassword(service.Password); !passwordCorrect {
 		return serializer.CreateErrorResponse(serializer.CodeUnauthorized, "当前用户密码错误，无法重置密码", err)
@@ -119,7 +119,7 @@ func (service *UserResetRequest) ResetPassword(c *gin.Context, user *models.User
 		return serializer.CreateErrorResponse(200, "重置密码失败", err)
 	}
 
-	if err := models.UpdateUser(user.ID, map[string]interface{}{"password": user.Password}); err != nil {
+	if err := model.UpdateUser(user.ID, map[string]interface{}{"password": user.Password}); err != nil {
 		return serializer.CreateDBErrorResponse("重置密码失败", err)
 	}
 
@@ -127,8 +127,8 @@ func (service *UserResetRequest) ResetPassword(c *gin.Context, user *models.User
 }
 
 // ApplyForActivate 用户向管理员申请激活
-func (service *ApplyForActivateRequest) ApplyForActivate(c *gin.Context, user *models.User) serializer.Response {
-	err := models.UpdateUser(user.ID, map[string]interface{}{"status": models.STATUS_APPLYING, "apply_message": service.Message})
+func (service *ApplyForActivateRequest) ApplyForActivate(c *gin.Context, user *model.User) serializer.Response {
+	err := model.UpdateUser(user.ID, map[string]interface{}{"status": model.STATUS_APPLYING, "apply_message": service.Message})
 	if err != nil {
 		return serializer.CreateDBErrorResponse("用户申请激活权限失败", err)
 	}
@@ -138,7 +138,7 @@ func (service *ApplyForActivateRequest) ApplyForActivate(c *gin.Context, user *m
 
 // GetApplications 管理员获取用户申请列表
 func (service *GetApplicationsRequest) GetApplications() serializer.Response {
-	applyInfos, err := models.GetApplyingUserInfo()
+	applyInfos, err := model.GetApplyingUserInfo()
 	if err != nil {
 		return serializer.CreateDBErrorResponse("获取用户激活申请列表失败", err)
 	}
@@ -148,16 +148,16 @@ func (service *GetApplicationsRequest) GetApplications() serializer.Response {
 
 // ActivateUser 管理员激活用户：授予指定仓库访问权限
 func (service *ActivateUserRequest) ActivateUser() serializer.Response {
-	user, err := models.GetUserByID(service.UserID)
+	user, err := model.GetUserByID(service.UserID)
 	if err != nil {
 		return serializer.CreateDBErrorResponse("获取用户失败", err)
 	}
 
-	if user.Status != models.STATUS_APPLYING {
+	if user.Status != model.STATUS_APPLYING {
 		return serializer.CreateErrorResponse(serializer.CodeConditionNotMeet, "激活用户权限失败：该用户非申请状态", nil)
 	}
 
-	err = models.UpdateUserAllowedRepos(user.ID, service.Repos)
+	err = model.UpdateUserAllowedRepos(user.ID, service.Repos)
 
 	if err != nil {
 		return serializer.CreateDBErrorResponse("激活用户权限失败", err)
@@ -168,16 +168,16 @@ func (service *ActivateUserRequest) ActivateUser() serializer.Response {
 
 // RejectUser 管理员拒绝用户申请：取消申请状态
 func (service *RejectUserRequest) RejectUser() serializer.Response {
-	user, err := models.GetUserByID(service.UserID)
+	user, err := model.GetUserByID(service.UserID)
 	if err != nil {
 		return serializer.CreateDBErrorResponse("获取用户失败", err)
 	}
 
-	if user.Status != models.STATUS_APPLYING {
+	if user.Status != model.STATUS_APPLYING {
 		return serializer.CreateErrorResponse(serializer.CodeConditionNotMeet, "拒绝用户失败：该用户非申请状态", nil)
 	}
 
-	err = models.UpdateUser(user.ID, map[string]interface{}{"status": models.STATUS_NOT_ACTIVE, "apply_message": ""})
+	err = model.UpdateUser(user.ID, map[string]interface{}{"status": model.STATUS_NOT_ACTIVE, "apply_message": ""})
 
 	if err != nil {
 		return serializer.CreateDBErrorResponse("拒绝用户失败", err)
@@ -188,12 +188,12 @@ func (service *RejectUserRequest) RejectUser() serializer.Response {
 
 // BanUser 管理员封禁用户
 func (service *BanUserRequest) BanUser() serializer.Response {
-	user, err := models.GetUserByID(service.UserID)
+	user, err := model.GetUserByID(service.UserID)
 	if err != nil {
 		return serializer.CreateDBErrorResponse("获取用户失败", err)
 	}
 
-	err = models.UpdateUser(user.ID, map[string]interface{}{"status": models.STATUS_BANNED, "apply_message": ""})
+	err = model.UpdateUser(user.ID, map[string]interface{}{"status": model.STATUS_BANNED, "apply_message": ""})
 
 	if err != nil {
 		return serializer.CreateDBErrorResponse("封禁用户失败", err)
@@ -203,7 +203,7 @@ func (service *BanUserRequest) BanUser() serializer.Response {
 }
 
 func (service *UserSetCurrentRepo) SetCurrentRepo(userID uint64) serializer.Response {
-	err := models.SetCurrentRepo(userID, service.CurrentRepo)
+	err := model.SetCurrentRepo(userID, service.CurrentRepo)
 	if err != nil {
 		return serializer.CreateInternalErrorResponse("设置当前仓库失败", err)
 	}
@@ -213,7 +213,7 @@ func (service *UserSetCurrentRepo) SetCurrentRepo(userID uint64) serializer.Resp
 }
 
 func GetCurrentRepo(userID uint64) serializer.Response {
-	repo, err := models.GetCurrentRepo(userID)
+	repo, err := model.GetCurrentRepo(userID)
 	if err != nil {
 		return serializer.CreateInternalErrorResponse("获取当前仓库失败", err)
 	}

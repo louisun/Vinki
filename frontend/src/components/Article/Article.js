@@ -119,6 +119,7 @@ const styles = (theme) => ({
     rightWrapper: {
         position: "fixed",
         top: "50px",
+        width: "100%"
     },
     toc: {
         marginTop: "30px",

@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/jinzhu/gorm"
-	"github.com/louisun/vinki/models"
+	"github.com/louisun/vinki/model"
 	"github.com/louisun/vinki/pkg/serializer"
 )
 
@@ -14,7 +14,7 @@ type ArticleView struct {
 
 // GetArticleDetail 获取文章详情
 func GetArticleDetail(repoName string, tagName string, articleName string) serializer.Response {
-	article, err := models.GetArticle(repoName, tagName, articleName)
+	article, err := model.GetArticle(repoName, tagName, articleName)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return serializer.CreateGeneralParamErrorResponse("文章 ID 不存在", err)

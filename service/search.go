@@ -3,7 +3,7 @@ package service
 import (
 	"errors"
 
-	"github.com/louisun/vinki/models"
+	"github.com/louisun/vinki/model"
 
 	"github.com/gin-gonic/gin"
 	"github.com/louisun/vinki/pkg/serializer"
@@ -24,13 +24,13 @@ func Search(c *gin.Context) serializer.Response {
 	}
 	switch searchType {
 	case typeTag:
-		tags, err := models.GetTagsBySearchName(repoName, keyword)
+		tags, err := model.GetTagsBySearchName(repoName, keyword)
 		if err != nil {
 			return serializer.CreateDBErrorResponse("", err)
 		}
 		return serializer.CreateSuccessResponse(tags, "")
 	case typeArticleName:
-		articleTagInfos, err := models.GetArticlesBySearchParam(repoName, keyword)
+		articleTagInfos, err := model.GetArticlesBySearchParam(repoName, keyword)
 		if err != nil {
 			return serializer.CreateDBErrorResponse("", err)
 		}

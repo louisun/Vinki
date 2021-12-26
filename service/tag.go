@@ -4,18 +4,18 @@ import (
 	"sort"
 
 	"github.com/jinzhu/gorm"
-	"github.com/louisun/vinki/models"
+	"github.com/louisun/vinki/model"
 	"github.com/louisun/vinki/pkg/serializer"
 )
 
 type tagArticleInfoView struct {
-	models.TagView
+	model.TagView
 	ArticleInfos []string
 }
 
 // GetTopTagInfosByRepo 获取 Repo 的一级 Tag 信息
 func GetTopTagInfosByRepo(repoName string) serializer.Response {
-	tags, err := models.GetTopTagInfosByRepo(repoName)
+	tags, err := model.GetTopTagInfosByRepo(repoName)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return serializer.CreateGeneralParamErrorResponse("当前仓库无标签可获取", err)
@@ -30,14 +30,14 @@ func GetTopTagInfosByRepo(repoName string) serializer.Response {
 // GetTagArticleView 根据 TagID 获取 TagArticleInfoView
 func GetTagArticleView(repoName string, tagName string, flat bool) serializer.Response {
 	var (
-		tagView models.TagView
+		tagView model.TagView
 		err     error
 	)
 
 	if flat {
-		tagView, err = models.GetFlatTagView(repoName, tagName)
+		tagView, err = model.GetFlatTagView(repoName, tagName)
 	} else {
-		tagView, err = models.GetTagView(repoName, tagName)
+		tagView, err = model.GetTagView(repoName, tagName)
 	}
 
 	if err != nil {
@@ -48,13 +48,13 @@ func GetTagArticleView(repoName string, tagName string, flat bool) serializer.Re
 		return serializer.CreateDBErrorResponse("", err)
 	}
 
-	articles, err := models.GetArticleList(repoName, tagName)
+	articles, err := model.GetArticleList(repoName, tagName)
 
 	if err != nil {
 		return serializer.CreateDBErrorResponse("", err)
 	}
 
-	sort.Sort(models.Articles(articles))
+	sort.Sort(model.Articles(articles))
 
 	view := tagArticleInfoView{
 		TagView:      tagView,
